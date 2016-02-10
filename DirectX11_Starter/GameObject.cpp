@@ -20,11 +20,10 @@ void GameObject::Draw(ID3D11DeviceContext* deviceContext) {
 
 	UINT stride = sizeof(Vertex);
 	UINT offset = 0;
-	// Triangle
+	// Draw the mesh
 	ID3D11Buffer* temp = gameObjectMesh->GetVertexBuffer(); // Returns vBuffer which is a pointer to the ID3D11, that it 
 	deviceContext->IASetVertexBuffers(0, 1, &temp, &stride, &offset);
 	deviceContext->IASetIndexBuffer(gameObjectMesh->GetIndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
-
 
 	// Finally do the actual drawing
 	//  - Do this ONCE PER OBJECT you intend to draw

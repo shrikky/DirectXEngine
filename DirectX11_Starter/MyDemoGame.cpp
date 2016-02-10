@@ -117,11 +117,13 @@ bool MyDemoGame::Init()
 	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 
+
+	// First Triangle
 	Triangle = new GameObject(_triMesh);
+	// Second Triangle with a different Y position
 	Triangle2 = new GameObject(_triMesh);
 	Triangle2->SetYPosition(-1.0f);
 	Parallelogram = new GameObject(_parallelogramMesh);
-	
 
 	// Successfully initialized
 	return true;
@@ -316,14 +318,17 @@ void MyDemoGame::DrawScene(float deltaTime, float totalTime)
 	vertexShader->SetMatrix4x4("view", viewMatrix);
 	vertexShader->SetMatrix4x4("projection", projectionMatrix);
 
+	// Draw Triangle 1
 	vertexShader->SetMatrix4x4("world", Triangle->worldMatrix);
 	vertexShader->CopyAllBufferData();
 	Triangle->Draw(deviceContext);
 
+	// Draw Triangle 2
 	vertexShader->SetMatrix4x4("world", Triangle2->worldMatrix);
 	vertexShader->CopyAllBufferData();
 	Triangle2->Draw(deviceContext);
 
+	// Draw Parallelogram
 	vertexShader->SetMatrix4x4("world", Parallelogram->worldMatrix);
 	vertexShader->CopyAllBufferData();
 	Parallelogram->Draw(deviceContext);
