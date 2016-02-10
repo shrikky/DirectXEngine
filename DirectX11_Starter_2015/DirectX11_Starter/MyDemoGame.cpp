@@ -118,7 +118,8 @@ bool MyDemoGame::Init()
 
 
 	Triangle = new GameObject(_triMesh);
-	Square = new GameObject(_squareMesh);
+	Triangle2 = new GameObject(_triMesh);
+	Triangle2->SetYPosition(-1.0f);
 	Parallelogram = new GameObject(_parallelogramMesh);
 	
 
@@ -267,9 +268,10 @@ void MyDemoGame::UpdateScene(float deltaTime, float totalTime)
 	// Quit if the escape key is pressed
 	if (GetAsyncKeyState(VK_ESCAPE))
 		Quit();
-	if (GetAsyncKeyState(VK_SPACE)) {
+	
 			Triangle->SetXPosition(sinf(totalTime));
-			Square->SetXPosition(sinf(totalTime));
+			if (GetAsyncKeyState(VK_SPACE)) {
+			Triangle2->SetXPosition(sinf(totalTime));
 			Parallelogram->SetRotationY(sinf(totalTime));
 	}
 }
@@ -318,9 +320,9 @@ void MyDemoGame::DrawScene(float deltaTime, float totalTime)
 	vertexShader->CopyAllBufferData();
 	Triangle->Draw(deviceContext);
 
-	vertexShader->SetMatrix4x4("world", Square->worldMatrix);
+	vertexShader->SetMatrix4x4("world", Triangle2->worldMatrix);
 	vertexShader->CopyAllBufferData();
-	Square->Draw(deviceContext);
+	Triangle2->Draw(deviceContext);
 
 	vertexShader->SetMatrix4x4("world", Parallelogram->worldMatrix);
 	vertexShader->CopyAllBufferData();

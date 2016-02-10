@@ -62,7 +62,7 @@ private:
 	GameObject* Triangle;
 
 	Mesh* _squareMesh;
-	GameObject* Square;
+	GameObject* Triangle2;
 
 	Mesh* _parallelogramMesh;
 	GameObject* Parallelogram;
