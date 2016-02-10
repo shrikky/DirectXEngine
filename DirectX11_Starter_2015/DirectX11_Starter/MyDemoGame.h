@@ -3,6 +3,7 @@
 #include <DirectXMath.h>
 #include "DirectXGameCore.h"
 #include "SimpleShader.h"
+#include "GameObject.h"
 #include "Mesh.h"
 
 // Include run-time memory checking in debug builds, so 
@@ -57,7 +58,12 @@ private:
 	// determining how far the mouse moved in a single frame.
 	POINT prevMousePos;
 
-	Mesh* Triangle;
-	Mesh* Square;
-	Mesh* Parallelogram;
+	Mesh* _triMesh;
+	GameObject* Triangle;
+
+	Mesh* _squareMesh;
+	GameObject* Square;
+
+	Mesh* _parallelogramMesh;
+	GameObject* Parallelogram;
 };

@@ -116,6 +116,12 @@ bool MyDemoGame::Init()
 	// geometric primitives we'll be using and how to interpret them
 	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
+
+	Triangle = new GameObject(_triMesh);
+	Square = new GameObject(_squareMesh);
+	Parallelogram = new GameObject(_parallelogramMesh);
+	
+
 	// Successfully initialized
 	return true;
 }
@@ -181,9 +187,9 @@ void MyDemoGame::CreateGeometry()
 	unsigned int sqInd[] = { 0, 1, 2, 0, 2, 3 };
 	unsigned int paraInd[] = { 0,1,2,0,2,3 };
 
-	Triangle = new Mesh(3, vertices, 3, indices, device);
-	Square = new Mesh(4, squareVert, 6, sqInd, device);
-	Parallelogram= new Mesh(4, parallelogram, 6, paraInd, device);
+	_triMesh = new Mesh(3, vertices, 3, indices, device);
+	_squareMesh = new Mesh(4, squareVert, 6, sqInd, device);
+	_parallelogramMesh= new Mesh(4, parallelogram, 6, paraInd, device);
 
 }
 
@@ -261,6 +267,11 @@ void MyDemoGame::UpdateScene(float deltaTime, float totalTime)
 	// Quit if the escape key is pressed
 	if (GetAsyncKeyState(VK_ESCAPE))
 		Quit();
+	if (GetAsyncKeyState(VK_SPACE)) {
+			Triangle->SetXPosition(sinf(totalTime));
+			Square->SetXPosition(sinf(totalTime));
+			Parallelogram->SetRotationY(sinf(totalTime));
+	}
 }
 
 // --------------------------------------------------------
@@ -287,58 +298,33 @@ void MyDemoGame::DrawScene(float deltaTime, float totalTime)
 	//  - This is actually a complex process of copying data to a local buffer
 	//    and then copying that entire buffer to the GPU.  
 	//  - The "SimpleShader" class handles all of that for you.
-	vertexShader->SetMatrix4x4("world", worldMatrix);
+	/*vertexShader->SetMatrix4x4("world", worldMatrix);
 	vertexShader->SetMatrix4x4("view", viewMatrix);
-	vertexShader->SetMatrix4x4("projection", projectionMatrix);
+	vertexShader->SetMatrix4x4("projection", projectionMatrix);*/
 	
 	// Set the vertex and pixel shaders to use for the next Draw() command
 	//  - These don't technically need to be set every frame...YET
 	//  - Once you start applying different shaders to different objects,
 	//    you'll need to swap the current shaders before each draw
+
 	vertexShader->SetShader(true);
 	pixelShader->SetShader(true);
-	
-	// Set buffers in the input assembler
-	//  - Do this ONCE PER OBJECT you're drawing, since each object might
-	//    have different geometry.
-	UINT stride = sizeof(Vertex);
-	UINT offset = 0;
 
-	// Triangle
-	ID3D11Buffer* temp = Triangle->GetVertexBuffer(); // Returns vBuffer which is a pointer to the ID3D11, that it 
-	deviceContext->IASetVertexBuffers(0, 1, &temp, &stride, &offset);
-	deviceContext->IASetIndexBuffer(Triangle->GetIndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
 
-	
-	// Finally do the actual drawing
-	//  - Do this ONCE PER OBJECT you intend to draw
-	//  - This will use all of the currently set DirectX "stuff" (shaders, buffers, etc)
-	//  - DrawIndexed() uses the currently set INDEX BUFFER to look up corresponding
-	//     vertices in the currently set VERTEX BUFFER
-	deviceContext->DrawIndexed(
-		Triangle->GetIndexCount(),     // The number of indices to use (we could draw a subset if we wanted)
-		0,								// Offset to the first index we want to use
-		0);								// Offset to add to each index when looking up vertices
+	vertexShader->SetMatrix4x4("view", viewMatrix);
+	vertexShader->SetMatrix4x4("projection", projectionMatrix);
 
-	// SQUARE
-	ID3D11Buffer* temp1 = Square->GetVertexBuffer(); // Returns vBuffer which is a pointer to the ID3D11, that it 
-	deviceContext->IASetVertexBuffers(0, 1, &temp1, &stride, &offset);
-	deviceContext->IASetIndexBuffer(Square->GetIndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
+	vertexShader->SetMatrix4x4("world", Triangle->worldMatrix);
+	vertexShader->CopyAllBufferData();
+	Triangle->Draw(deviceContext);
 
-	deviceContext->DrawIndexed(
-		Square->GetIndexCount(),      // The number of indices to use (we could draw a subset if we wanted)
-		0,							 // Offset to the first index we want to use
-		0);							 // Offset to add to each index when looking up vertices
+	vertexShader->SetMatrix4x4("world", Square->worldMatrix);
+	vertexShader->CopyAllBufferData();
+	Square->Draw(deviceContext);
 
-	// Parallelogram
-	ID3D11Buffer* temp2 = Parallelogram->GetVertexBuffer(); // Returns vBuffer which is a pointer to the ID3D11, that it 
-	deviceContext->IASetVertexBuffers(0, 1, &temp2, &stride, &offset);
-	deviceContext->IASetIndexBuffer(Parallelogram->GetIndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
-
-	deviceContext->DrawIndexed(
-		Parallelogram->GetIndexCount(),     // The number of indices to use (we could draw a subset if we wanted)
-		0,									// Offset to the first index we want to use
-		0);									// Offset to add to each index when looking up vertices
+	vertexShader->SetMatrix4x4("world", Parallelogram->worldMatrix);
+	vertexShader->CopyAllBufferData();
+	Parallelogram->Draw(deviceContext);
 
 
 	// Present the buffer
