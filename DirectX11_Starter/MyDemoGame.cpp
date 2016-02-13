@@ -125,6 +125,8 @@ bool MyDemoGame::Init()
 	Triangle2->SetYPosition(-1.0f);
 	Parallelogram = new GameObject(_parallelogramMesh);
 
+	// Camera
+	myCamera = new Camera();
 	// Successfully initialized
 	return true;
 }
@@ -272,10 +274,29 @@ void MyDemoGame::UpdateScene(float deltaTime, float totalTime)
 		Quit();
 	
 			Triangle->SetXPosition(sinf(totalTime));
-			if (GetAsyncKeyState(VK_SPACE)) {
 			Triangle2->SetXPosition(sinf(totalTime));
-			Parallelogram->SetRotationY(sinf(totalTime));
-	}
+			//Parallelogram->SetRotationY(sinf(totalTime));
+			if (GetAsyncKeyState(VK_SPACE)) {
+				myCamera->SetRotationY(sinf(totalTime));
+				myCamera->VerticalMovement(0.001f);
+			}
+			if (GetAsyncKeyState('X') & 0x8000) {
+				myCamera->VerticalMovement(-0.001f);
+			}
+			if (GetAsyncKeyState('W') & 0x8000) {
+				myCamera->Forward(0.001f);
+			}
+			if (GetAsyncKeyState('S') & 0x8000) {
+				myCamera->Forward(-0.001f);
+			}
+			if (GetAsyncKeyState('D') & 0x8000) {
+				myCamera->Strafe(0.001f);
+			}
+			if (GetAsyncKeyState('A') & 0x8000) {
+				myCamera->Strafe(-0.001f);
+			}
+			myCamera->Update();
+			viewMatrix = myCamera->GetviewMatrix();
 }
 
 // --------------------------------------------------------
@@ -302,9 +323,6 @@ void MyDemoGame::DrawScene(float deltaTime, float totalTime)
 	//  - This is actually a complex process of copying data to a local buffer
 	//    and then copying that entire buffer to the GPU.  
 	//  - The "SimpleShader" class handles all of that for you.
-	/*vertexShader->SetMatrix4x4("world", worldMatrix);
-	vertexShader->SetMatrix4x4("view", viewMatrix);
-	vertexShader->SetMatrix4x4("projection", projectionMatrix);*/
 	
 	// Set the vertex and pixel shaders to use for the next Draw() command
 	//  - These don't technically need to be set every frame...YET

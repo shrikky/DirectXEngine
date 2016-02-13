@@ -4,6 +4,7 @@
 #include "DirectXGameCore.h"
 #include "SimpleShader.h"
 #include "GameObject.h"
+#include "Camera.h"
 #include "Mesh.h"
 
 // Include run-time memory checking in debug builds, so 
@@ -66,4 +67,6 @@ private:
 
 	Mesh* _parallelogramMesh;
 	GameObject* Parallelogram;
+
+	Camera* myCamera;
 };
