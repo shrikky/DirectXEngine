@@ -23,7 +23,7 @@
 
 #include "MyDemoGame.h"
 #include "Vertex.h"
-
+#include <iostream>?
 // For the DirectX Math library
 using namespace DirectX;
 
@@ -99,7 +99,8 @@ MyDemoGame::~MyDemoGame()
 // sets up our geometry and loads the shaders (among other things)
 // --------------------------------------------------------
 bool MyDemoGame::Init()
-{
+{	// Camera
+	myCamera = new Camera();
 	// Call the base class's Init() method to create the window,
 	// initialize DirectX, etc.
 	if( !DirectXGameCore::Init() )
@@ -116,17 +117,17 @@ bool MyDemoGame::Init()
 	// geometric primitives we'll be using and how to interpret them
 	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-
-
-	// First Triangle
-	Triangle = new GameObject(_triMesh);
-	// Second Triangle with a different Y position
-	Triangle2 = new GameObject(_triMesh);
+	// Create Material -> Params (Vertexshader, Pixel shader)
+	material = new Material(vertexShader, pixelShader);
+	// Create Game Objects -> Params(Mesh, Material)
+	Triangle = new GameObject(_triMesh, material);
+	Triangle->SetZPosition(-1.0f);
+	Triangle2 = new GameObject(_triMesh, material);
 	Triangle2->SetYPosition(-1.0f);
-	Parallelogram = new GameObject(_parallelogramMesh);
+	Parallelogram = new GameObject(_parallelogramMesh, material);
+	Parallelogram->SetZPosition(1.0f);
 
-	// Camera
-	myCamera = new Camera();
+
 	// Successfully initialized
 	return true;
 }
@@ -227,15 +228,7 @@ void MyDemoGame::CreateMatrices()
 		up);     // "Up" direction in 3D space (prevents roll)
 	XMStoreFloat4x4(&viewMatrix, XMMatrixTranspose(V)); // Transpose for HLSL!
 
-	// Create the Projection matrix
-	// - This should match the window's aspect ratio, and also update anytime
-	//   the window resizes (which is already happening in OnResize() below)
-	XMMATRIX P = XMMatrixPerspectiveFovLH(
-		0.25f * 3.1415926535f,		// Field of View Angle
-		aspectRatio,				// Aspect ratio
-		0.1f,						// Near clip plane distance
-		100.0f);					// Far clip plane distance
-	XMStoreFloat4x4(&projectionMatrix, XMMatrixTranspose(P)); // Transpose for HLSL!
+	myCamera->OnResize(aspectRatio);
 }
 
 #pragma endregion
@@ -250,14 +243,7 @@ void MyDemoGame::OnResize()
 {
 	// Handle base-level DX resize stuff
 	DirectXGameCore::OnResize();
-
-	// Update our projection matrix since the window size changed
-	XMMATRIX P = XMMatrixPerspectiveFovLH(
-		0.25f * 3.1415926535f,	// Field of View Angle
-		aspectRatio,		  	// Aspect ratio
-		0.1f,				  	// Near clip plane distance
-		100.0f);			  	// Far clip plane distance
-	XMStoreFloat4x4(&projectionMatrix, XMMatrixTranspose(P)); // Transpose for HLSL!
+	myCamera->OnResize(aspectRatio);
 }
 #pragma endregion
 
@@ -269,34 +255,39 @@ void MyDemoGame::OnResize()
 float x = 0;
 void MyDemoGame::UpdateScene(float deltaTime, float totalTime)
 {
+	GetCursorPos(&p);
+	if (btnState & 0x0001) {
+		OnMouseDown(btnState, p.x, p.y);
+
+	}
 	// Quit if the escape key is pressed
 	if (GetAsyncKeyState(VK_ESCAPE))
 		Quit();
 	
-			Triangle->SetXPosition(sinf(totalTime));
-			Triangle2->SetXPosition(sinf(totalTime));
-			//Parallelogram->SetRotationY(sinf(totalTime));
-			if (GetAsyncKeyState(VK_SPACE)) {
-				myCamera->SetRotationY(sinf(totalTime));
-				myCamera->VerticalMovement(0.001f);
-			}
-			if (GetAsyncKeyState('X') & 0x8000) {
-				myCamera->VerticalMovement(-0.001f);
-			}
-			if (GetAsyncKeyState('W') & 0x8000) {
-				myCamera->Forward(0.001f);
-			}
-			if (GetAsyncKeyState('S') & 0x8000) {
-				myCamera->Forward(-0.001f);
-			}
-			if (GetAsyncKeyState('D') & 0x8000) {
-				myCamera->Strafe(0.001f);
-			}
-			if (GetAsyncKeyState('A') & 0x8000) {
-				myCamera->Strafe(-0.001f);
-			}
-			myCamera->Update();
-			viewMatrix = myCamera->GetviewMatrix();
+	Triangle->SetXPosition(sinf(totalTime));
+	Triangle2->SetXPosition(sinf(totalTime));
+	if (GetAsyncKeyState(VK_SPACE)) {
+		myCamera->SetRotationY(sinf(totalTime));
+		myCamera->VerticalMovement(0.001f);
+	}
+	if (GetAsyncKeyState('X') & 0x8000) {
+		myCamera->VerticalMovement(-0.001f);
+	}
+	if (GetAsyncKeyState('W') & 0x8000) {
+		myCamera->Forward(0.001f);
+	}
+	if (GetAsyncKeyState('S') & 0x8000) {
+		myCamera->Forward(-0.001f);
+	}
+	if (GetAsyncKeyState('D') & 0x8000) {
+		myCamera->Strafe(0.001f);
+	}
+	if (GetAsyncKeyState('A') & 0x8000) {
+		myCamera->Strafe(-0.001f);
+	}
+
+	myCamera->Update();
+	viewMatrix = myCamera->GetviewMatrix();
 }
 
 // --------------------------------------------------------
@@ -318,44 +309,15 @@ void MyDemoGame::DrawScene(float deltaTime, float totalTime)
 		0);
 
 
-	// Send data to shader variables
-	//  - Do this ONCE PER OBJECT you're drawing
-	//  - This is actually a complex process of copying data to a local buffer
-	//    and then copying that entire buffer to the GPU.  
-	//  - The "SimpleShader" class handles all of that for you.
-	
-	// Set the vertex and pixel shaders to use for the next Draw() command
-	//  - These don't technically need to be set every frame...YET
-	//  - Once you start applying different shaders to different objects,
-	//    you'll need to swap the current shaders before each draw
-
-	vertexShader->SetShader(true);
-	pixelShader->SetShader(true);
-
-
-	vertexShader->SetMatrix4x4("view", viewMatrix);
-	vertexShader->SetMatrix4x4("projection", projectionMatrix);
-
-	// Draw Triangle 1
-	vertexShader->SetMatrix4x4("world", Triangle->worldMatrix);
-	vertexShader->CopyAllBufferData();
+	Triangle->PrepareMaterial(myCamera->GetviewMatrix(), myCamera->GetProjectionMatrix());
 	Triangle->Draw(deviceContext);
 
-	// Draw Triangle 2
-	vertexShader->SetMatrix4x4("world", Triangle2->worldMatrix);
-	vertexShader->CopyAllBufferData();
+	Triangle2->PrepareMaterial(myCamera->GetviewMatrix(), myCamera->GetProjectionMatrix());
 	Triangle2->Draw(deviceContext);
 
-	// Draw Parallelogram
-	vertexShader->SetMatrix4x4("world", Parallelogram->worldMatrix);
-	vertexShader->CopyAllBufferData();
+	Parallelogram->PrepareMaterial(myCamera->GetviewMatrix(), myCamera->GetProjectionMatrix());
 	Parallelogram->Draw(deviceContext);
 
-
-	// Present the buffer
-	//  - Puts the image we're drawing into the window so the user can see it
-	//  - Do this exactly ONCE PER FRAME
-	//  - Always at the very end of the frame
 	HR(swapChain->Present(0, 0));
 }
 
@@ -404,6 +366,9 @@ void MyDemoGame::OnMouseUp(WPARAM btnState, int x, int y)
 void MyDemoGame::OnMouseMove(WPARAM btnState, int x, int y)
 {
 	// Save the previous mouse position, so we have it for the future
+	int diffX = x - prevMousePos.x;
+	int diffY = y - prevMousePos.y;
+	myCamera->MouseMovement(diffY * 0.0005f, diffX* 0.0005f);
 	prevMousePos.x = x;
 	prevMousePos.y = y;
 }

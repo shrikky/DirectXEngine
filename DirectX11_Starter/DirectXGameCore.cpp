@@ -46,7 +46,7 @@ DirectXGameCore::DirectXGameCore(HINSTANCE hInstance)
 	hMainWnd(0),
 	hasFocus(false),
 	minimized(false),
-	maximized(false),
+	maximized(true),
 	resizing(false),
 	device(0),
 	deviceContext(0),

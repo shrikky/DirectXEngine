@@ -1,12 +1,13 @@
 #pragma once
 #include <DirectXMath.h>
-#include <d3d11.h>
 using namespace DirectX;
 class Camera
 {
 public:
+
 	XMFLOAT4X4 worldMatrix;
 	XMFLOAT4X4 viewMatrix;
+	XMFLOAT4X4 projectionMatrix;
 	XMFLOAT3 camPosition = XMFLOAT3(0, 0, -5);
 	XMFLOAT3 forwardVector = XMFLOAT3(0, 0, 1);
 	XMFLOAT3 upDirection = XMFLOAT3(0, 1, 0);
@@ -19,6 +20,9 @@ public:
 	}
 	XMFLOAT4X4 GetviewMatrix() {
 		return viewMatrix;
+	}
+	XMFLOAT4X4 GetProjectionMatrix() {
+		return projectionMatrix;
 	}
 	void SetRotationX(float x) {
 		rotX = x;
@@ -34,6 +38,8 @@ public:
 	void Rotate(float rotation);
 	void Strafe(float disp); 
 	void VerticalMovement(float disp);
+	void MouseMovement(float x, float y);
+	void OnResize(float aspectRatio);
 	Camera();
 	~Camera();
 };

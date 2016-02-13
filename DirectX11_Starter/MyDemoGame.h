@@ -4,6 +4,7 @@
 #include "DirectXGameCore.h"
 #include "SimpleShader.h"
 #include "GameObject.h"
+#include "Material.h"
 #include "Camera.h"
 #include "Mesh.h"
 
@@ -68,5 +69,9 @@ private:
 	Mesh* _parallelogramMesh;
 	GameObject* Parallelogram;
 
+	Material* material;
+
+	POINT p;
 	Camera* myCamera;
+	WPARAM btnState;
 };

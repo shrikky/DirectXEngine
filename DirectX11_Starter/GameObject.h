@@ -5,6 +5,7 @@
 #include "SimpleShader.h"
 #include "Mesh.h"
 #include <d3d11.h>
+#include "Material.h"
 using namespace DirectX;
 class GameObject
 {
@@ -14,7 +15,7 @@ public:
 	XMFLOAT3 rotation;
 	XMFLOAT3 scale;
 	Mesh* gameObjectMesh;
-
+	Material* gameObjectmaterial;
 	XMFLOAT4X4 GetWorldMatrix() {
 		return worldMatrix;
 	}
@@ -63,7 +64,8 @@ public:
 	void SetWorldMatrix();
 	void MoveForward();
 	void Draw(ID3D11DeviceContext* deviceContext);
-	GameObject(Mesh* mesh);
+	void PrepareMaterial(XMFLOAT4X4 view, XMFLOAT4X4 proj);
+	GameObject(Mesh* mesh, Material* material);
 	~GameObject();
 private:
 

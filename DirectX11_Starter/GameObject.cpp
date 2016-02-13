@@ -2,12 +2,13 @@
 
 
 
-GameObject::GameObject(Mesh *mesh)
+GameObject::GameObject(Mesh *mesh, Material* material)
 {
 	gameObjectMesh = mesh;
 	position = XMFLOAT3(1.0f, 0.0f, 0.0f);
 	rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	scale = XMFLOAT3(1.0f, 1.0f, 1.0f);
+	gameObjectmaterial = material;
 	SetWorldMatrix();
 }
 
@@ -37,7 +38,6 @@ void GameObject::Draw(ID3D11DeviceContext* deviceContext) {
 }
 void GameObject::SetWorldMatrix() {
 	XMMATRIX trans = XMMatrixTranslation(position.x, position.y, position.z);
-	//XMMATRIX rot = XMMatrixRotationRollPitchYaw(rotation.x,rotation.y,rotation.z);
 	XMMATRIX rot = XMMatrixRotationY(rotation.y);
 	XMMATRIX scaleMatrix = XMMatrixScaling(scale.x, scale.y, scale.z);
 	XMMATRIX world = scaleMatrix * rot * trans;
@@ -46,6 +46,15 @@ void GameObject::SetWorldMatrix() {
 void GameObject::Move() {
 	position.x = 5.0f;
 	SetWorldMatrix();
+}
+void GameObject::PrepareMaterial(XMFLOAT4X4 view, XMFLOAT4X4 proj) {
+
+	gameObjectmaterial->vertexShader->SetMatrix4x4("world", worldMatrix);
+	gameObjectmaterial->vertexShader->SetMatrix4x4("view", view);
+	gameObjectmaterial->vertexShader->SetMatrix4x4("projection", proj);
+	gameObjectmaterial->vertexShader->SetShader(true);
+	gameObjectmaterial->pixelShader->SetShader(true);
+
 }
 
 void GameObject::MoveForward() {
