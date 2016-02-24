@@ -54,7 +54,6 @@ void GameObject::PrepareMaterial(XMFLOAT4X4 view, XMFLOAT4X4 proj) {
 	gameObjectmaterial->vertexShader->SetMatrix4x4("projection", proj);
 	gameObjectmaterial->vertexShader->SetShader(true);
 	gameObjectmaterial->pixelShader->SetShader(true);
-
 }
 
 void GameObject::MoveForward() {

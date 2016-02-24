@@ -119,15 +119,32 @@ bool MyDemoGame::Init()
 
 	// Create Material -> Params (Vertexshader, Pixel shader)
 	material = new Material(vertexShader, pixelShader);
+
 	// Create Game Objects -> Params(Mesh, Material)
-	Triangle = new GameObject(_triMesh, material);
-	Triangle->SetZPosition(-1.0f);
-	Triangle2 = new GameObject(_triMesh, material);
-	Triangle2->SetYPosition(-1.0f);
-	Parallelogram = new GameObject(_parallelogramMesh, material);
-	Parallelogram->SetZPosition(1.0f);
+	sphere = new GameObject(_sphere, material);
+	cube = new GameObject(_cube, material);
+	cube->SetXPosition(-2);
 
+	//  Initialize Lights
+	directionLight.AmbientColor = XMFLOAT4(0, 0, 0, 0.0);
+	directionLight.DiffuseColor = XMFLOAT4(.5, 0, 0, .5f);
+	directionLight.Direction = XMFLOAT3(-3, -1, -2);
+	pixelShader->SetData("directionLight", &directionLight, sizeof(directionLight));
 
+	directionalLight2.AmbientColor = XMFLOAT4(0.1, 0, 0, 0);
+	directionalLight2.DiffuseColor = XMFLOAT4(.25, 1, .2, .5f);
+	directionalLight2.Direction = XMFLOAT3(2, 1, 0);
+	pixelShader->SetData("directionLight2", &directionalLight2, sizeof(directionalLight2));
+
+	pointLight.PointLightColor = XMFLOAT4(0, 0, 1, 0);
+	pointLight.Position = XMFLOAT3(-6, 0, 0);
+	pixelShader->SetData("pointLight", &pointLight, sizeof(pointLight));
+
+	specularLight.SpecularColor = XMFLOAT4(0, 0, 0, 0);
+	specularLight.Position = XMFLOAT3(5, 0, -3);
+	specularLight.specularStrength = 0.5f;
+	specularLight.SpecularColor = XMFLOAT4(0, 1, 0,1);
+	pixelShader->SetData("specularLight", &specularLight, sizeof(specularLight));
 	// Successfully initialized
 	return true;
 }
@@ -155,48 +172,8 @@ void MyDemoGame::CreateGeometry()
 {
 	// Create some temporary variables to represent colors
 	// - Not necessary, just makes things more readable
-	XMFLOAT4 red	= XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f);
-	XMFLOAT4 green	= XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f);
-	XMFLOAT4 blue	= XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f);
-
-	// Set up the vertices of the triangle we would like to draw
-	// - We're going to copy this array, exactly as it exists in memory
-	//    over to a DirectX-controlled data structure (the vertex buffer)
-	Vertex vertices[] = 
-	{
-		{ XMFLOAT3(+0.0f, +1.0f, +0.0f), red },
-		{ XMFLOAT3(+1.5f, -1.0f, +0.0f), blue },
-		{ XMFLOAT3(-1.5f, -1.0f, +0.0f), green },
-	};
-	
-	Vertex squareVert[] =
-	{
-		{ XMFLOAT3(+2.0f, +1.5f, +0.0f), red }, // Top left
-		{ XMFLOAT3(+3.5f, +1.5f, +0.0f), blue }, // Right
-		{ XMFLOAT3(+3.5f, 0.0f, +0.0f), green }, // RightBottom
-		{ XMFLOAT3(+2.0f, 0.0f, +0.0f), blue }, // Left bottom
-	};
-
-	Vertex parallelogram[] =
-	{
-		{ XMFLOAT3(-2.0f, +1.5f, +0.0f), red }, // Top left
-		{ XMFLOAT3(-0.5f, +1.5f, +0.0f), blue }, // Right
-		{ XMFLOAT3(-1.5f, 0.0f, +0.0f), green }, // RightBottom
-		{ XMFLOAT3(-3.0f, 0.0f, +0.0f), blue }, // Left bottom
-	};
-	// Set up the indices, which tell us which vertices to use and in which order
-	// - This is somewhat redundant for just 3 vertices (it's a simple example)
-	// - Indices are technically not required if the vertices are in the buffer 
-	//    in the correct order and each one will be used exactly once
-	// - But just to see how it's done...
-	unsigned int indices[] = { 0, 1, 2 };
-	unsigned int sqInd[] = { 0, 1, 2, 0, 2, 3 };
-	unsigned int paraInd[] = { 0,1,2,0,2,3 };
-
-	_triMesh = new Mesh(3, vertices, 3, indices, device);
-	_squareMesh = new Mesh(4, squareVert, 6, sqInd, device);
-	_parallelogramMesh= new Mesh(4, parallelogram, 6, paraInd, device);
-
+	_cube = new Mesh(device, "cube.obj");
+	_sphere = new Mesh(device, "sphere.obj");
 }
 
 
@@ -260,12 +237,12 @@ void MyDemoGame::UpdateScene(float deltaTime, float totalTime)
 		OnMouseDown(btnState, p.x, p.y);
 
 	}
+	
 	// Quit if the escape key is pressed
 	if (GetAsyncKeyState(VK_ESCAPE))
 		Quit();
 	
-	Triangle->SetXPosition(sinf(totalTime));
-	Triangle2->SetXPosition(sinf(totalTime));
+	//Cube->SetXPosition((totalTime));
 	if (GetAsyncKeyState(VK_SPACE)) {
 		myCamera->SetRotationY(sinf(totalTime));
 		myCamera->VerticalMovement(0.001f);
@@ -288,6 +265,7 @@ void MyDemoGame::UpdateScene(float deltaTime, float totalTime)
 
 	myCamera->Update();
 	viewMatrix = myCamera->GetviewMatrix();
+	
 }
 
 // --------------------------------------------------------
@@ -307,17 +285,13 @@ void MyDemoGame::DrawScene(float deltaTime, float totalTime)
 		D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL,
 		1.0f,
 		0);
+	cube->PrepareMaterial(myCamera->GetviewMatrix(), myCamera->GetProjectionMatrix());
+	cube->Draw(deviceContext);
 
+	sphere->PrepareMaterial(myCamera->GetviewMatrix(), myCamera->GetProjectionMatrix());
+	sphere->Draw(deviceContext);
 
-	Triangle->PrepareMaterial(myCamera->GetviewMatrix(), myCamera->GetProjectionMatrix());
-	Triangle->Draw(deviceContext);
-
-	Triangle2->PrepareMaterial(myCamera->GetviewMatrix(), myCamera->GetProjectionMatrix());
-	Triangle2->Draw(deviceContext);
-
-	Parallelogram->PrepareMaterial(myCamera->GetviewMatrix(), myCamera->GetProjectionMatrix());
-	Parallelogram->Draw(deviceContext);
-
+	pixelShader->SetData("cameraPosition", &myCamera->camPosition, sizeof(myCamera->camPosition));
 	HR(swapChain->Present(0, 0));
 }
 
@@ -368,8 +342,13 @@ void MyDemoGame::OnMouseMove(WPARAM btnState, int x, int y)
 	// Save the previous mouse position, so we have it for the future
 	int diffX = x - prevMousePos.x;
 	int diffY = y - prevMousePos.y;
-	myCamera->MouseMovement(diffY * 0.0005f, diffX* 0.0005f);
+	if (diffX > 1000 || diffX <-1000 || diffY > 1000 || diffY< -1000) {
+		diffX = diffY = 0;
+	}
+	myCamera->MouseMovement(diffY * 0.0003f, diffX* 0.0003f);
 	prevMousePos.x = x;
 	prevMousePos.y = y;
+
+
 }
 #pragma endregion

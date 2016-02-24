@@ -7,7 +7,8 @@
 #include "Material.h"
 #include "Camera.h"
 #include "Mesh.h"
-
+#include <math.h>
+#include "Lights.h"
 // Include run-time memory checking in debug builds, so 
 // we can be notified of memory leaks
 #if defined(DEBUG) || defined(_DEBUG)
@@ -43,10 +44,6 @@ private:
 	void CreateGeometry();
 	void CreateMatrices();
 
-	// Buffers to hold actual geometry data
-	//ID3D11Buffer* vertexBuffer;
-	//ID3D11Buffer* indexBuffer;
-
 	// Wrappers for DirectX shaders to provide simplified functionality
 	SimpleVertexShader* vertexShader;
 	SimplePixelShader* pixelShader;
@@ -59,19 +56,23 @@ private:
 	// Keeps track of the old mouse position.  Useful for 
 	// determining how far the mouse moved in a single frame.
 	POINT prevMousePos;
-
-	Mesh* _triMesh;
-	GameObject* Triangle;
-
-	Mesh* _squareMesh;
-	GameObject* Triangle2;
-
-	Mesh* _parallelogramMesh;
-	GameObject* Parallelogram;
-
-	Material* material;
-
 	POINT p;
+
+	// Meshes
+	Mesh* _cube;
+	Mesh* _sphere;
+
+	// GameObjects
+	GameObject* cube;
+	GameObject* sphere;
+
+	//Misc
+	Material* material;
 	Camera* myCamera;
 	WPARAM btnState;
+
+	DirectionLight directionLight;
+	DirectionLight directionalLight2;
+	PointLight pointLight;
+	SpecularLight specularLight;
 };
