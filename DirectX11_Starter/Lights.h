@@ -15,7 +15,6 @@ struct PointLight {
 };
 struct SpecularLight {
 	XMFLOAT4 SpecularColor;
-	XMFLOAT3 Position;
-	float specularStrength;
+	float SpecularStrength;
 
 };

@@ -143,13 +143,6 @@ Mesh::Mesh(ID3D11Device* deviceObj, char* filename) {
 	// Close
 	obj.close();
 
-	// - At this point, "verts" is a vector of Vertex structs, and can be used
-	//    directly to create a vertex buffer:  &verts[0] is the first vert
-	//
-	// - The vector "indices" is similar. It's a vector of unsigned ints and
-	//    can be used directly for the index buffer: &indices[0] is the first int
-	//
-	// - "vertCounter" is BOTH the number of vertices and the number of indices
 	numOfIndices = indices.size();
 	// Create vertexBuffers
 	D3D11_BUFFER_DESC vbd;
@@ -159,12 +152,9 @@ Mesh::Mesh(ID3D11Device* deviceObj, char* filename) {
 	vbd.CPUAccessFlags = 0;
 	vbd.MiscFlags = 0;
 	vbd.StructureByteStride = 0;
-
-
 	// Load Data to Vertex Buffer
 	D3D11_SUBRESOURCE_DATA vertData;
 	vertData.pSysMem = &verts[0];
-
 	// Create the buffer with the data
 	HR(deviceObj->CreateBuffer(&vbd, &vertData, &vBuffer));
 
@@ -176,12 +166,9 @@ Mesh::Mesh(ID3D11Device* deviceObj, char* filename) {
 	ibd.CPUAccessFlags = 0;
 	ibd.MiscFlags = 0;
 	ibd.StructureByteStride = 0;
-
 	//Load Data to IndexBuffer
 	D3D11_SUBRESOURCE_DATA indData;
 	indData.pSysMem = &indices[0];
-
-
 	// Create Index Buffer with the data.
 	HR(deviceObj->CreateBuffer(&ibd, &indData, &iBuffer));
 }

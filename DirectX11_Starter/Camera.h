@@ -8,7 +8,7 @@ public:
 	XMFLOAT4X4 worldMatrix;
 	XMFLOAT4X4 viewMatrix;
 	XMFLOAT4X4 projectionMatrix;
-	XMFLOAT3 camPosition = XMFLOAT3(0, 0, -5);
+	XMFLOAT3 camPosition = XMFLOAT3(0, 0, -10);
 	XMFLOAT3 forwardVector = XMFLOAT3(0, 0, 1);
 	XMFLOAT3 upDirection = XMFLOAT3(0, 1, 0);
 	XMFLOAT3 leftVector = XMFLOAT3(0, 0, 0);

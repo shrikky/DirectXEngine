@@ -137,15 +137,12 @@ bool MyDemoGame::Init()
 	pixelShader->SetData("directionLight2", &directionalLight2, sizeof(directionalLight2));
 
 	pointLight.PointLightColor = XMFLOAT4(0, 0, 1, 0);
-	pointLight.Position = XMFLOAT3(-6, 0, 0);
+	pointLight.Position = XMFLOAT3(3, 0, -3);
 	pixelShader->SetData("pointLight", &pointLight, sizeof(pointLight));
 
-	specularLight.SpecularColor = XMFLOAT4(0, 0, 0, 0);
-	specularLight.Position = XMFLOAT3(5, 0, -3);
-	specularLight.specularStrength = 0.5f;
+	specularLight.SpecularStrength = 0.5f;
 	specularLight.SpecularColor = XMFLOAT4(0, 1, 0,1);
 	pixelShader->SetData("specularLight", &specularLight, sizeof(specularLight));
-	// Successfully initialized
 	return true;
 }
 
@@ -291,7 +288,8 @@ void MyDemoGame::DrawScene(float deltaTime, float totalTime)
 	sphere->PrepareMaterial(myCamera->GetviewMatrix(), myCamera->GetProjectionMatrix());
 	sphere->Draw(deviceContext);
 
-	pixelShader->SetData("cameraPosition", &myCamera->camPosition, sizeof(myCamera->camPosition));
+	//pixelShader->SetData("cameraPosition", &myCamera->camPosition, sizeof(myCamera->camPosition));
+	pixelShader->SetFloat3("cameraPosition", myCamera->camPosition);
 	HR(swapChain->Present(0, 0));
 }
 
