@@ -56,12 +56,27 @@ void Camera::MouseMovement(float x, float y) {
 
 	rotX = x;
 	rotY = y;
+	/*This code cause a wrong camera rotaion, I leave it here for guys to debug
 	XMVECTOR forwardDir = XMLoadFloat3(&forwardVector);
 	XMVECTOR camPos = XMLoadFloat3(&camPosition);
 	XMMATRIX rotation = XMMatrixRotationRollPitchYaw(rotX, rotY, 0);  // Rotate y by 30
 	forwardDir = XMVector3TransformCoord(forwardDir, rotation);
 	forwardDir = XMVector3Normalize(forwardDir);
 	XMStoreFloat3(&forwardVector, forwardDir);
+	*/
+
+	XMVECTOR cameradir = XMLoadFloat3(&forwardVector);
+	XMVECTOR cameraup = XMLoadFloat3(&upDirection);
+	XMVECTOR newCameraDir = XMLoadFloat3(&forwardVector);
+	XMMATRIX PitchMatrix = XMMatrixRotationAxis(-XMVector3Cross(cameradir, cameraup), rotX);
+	XMMATRIX YawMatrix = XMMatrixRotationAxis(cameraup, rotY);
+	newCameraDir = XMVector3Transform(newCameraDir, PitchMatrix);
+	newCameraDir = XMVector3Transform(newCameraDir, YawMatrix);
+	XMStoreFloat3(&forwardVector, newCameraDir);
+
+	XMVECTOR newUpVector = XMLoadFloat3(&upDirection);
+	newUpVector = XMVector3Transform(newUpVector, PitchMatrix);
+	XMStoreFloat3(&upDirection, newUpVector);
 }
 
 void Camera::VerticalMovement(float disp) {

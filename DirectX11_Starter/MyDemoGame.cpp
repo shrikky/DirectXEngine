@@ -244,16 +244,16 @@ void MyDemoGame::UpdateScene(float deltaTime, float totalTime)
 		myCamera->VerticalMovement(-0.001f);
 	}
 	if (GetAsyncKeyState('W') & 0x8000) {
-		myCamera->Forward(0.001f);
+		myCamera->Forward(0.01f);
 	}
 	if (GetAsyncKeyState('S') & 0x8000) {
-		myCamera->Forward(-0.001f);
+		myCamera->Forward(-0.01f);
 	}
 	if (GetAsyncKeyState('D') & 0x8000) {
-		myCamera->Strafe(0.001f);
+		myCamera->Strafe(0.01f);
 	}
 	if (GetAsyncKeyState('A') & 0x8000) {
-		myCamera->Strafe(-0.001f);
+		myCamera->Strafe(-0.01f);
 	}
 
 	myCamera->Update();
@@ -334,15 +334,17 @@ void MyDemoGame::OnMouseUp(WPARAM btnState, int x, int y)
 void MyDemoGame::OnMouseMove(WPARAM btnState, int x, int y)
 {
 	// Save the previous mouse position, so we have it for the future
-	int diffX = x - prevMousePos.x;
-	int diffY = y - prevMousePos.y;
-	if (diffX > 1000 || diffX <-1000 || diffY > 1000 || diffY< -1000) {
-		diffX = diffY = 0;
+	//hold left button and move camera
+	if (btnState & 0x0001)
+	{
+		int diffX = x - prevMousePos.x;
+		int diffY = y - prevMousePos.y;
+		if (diffX > 1000 || diffX <-1000 || diffY > 1000 || diffY< -1000) {
+			diffX = diffY = 0;
+		}
+		myCamera->MouseMovement(diffY * 0.001f, diffX* 0.001f);
+		prevMousePos.x = x;
+		prevMousePos.y = y;
 	}
-	myCamera->MouseMovement(diffY * 0.0003f, diffX* 0.0003f);
-	prevMousePos.x = x;
-	prevMousePos.y = y;
-
-
 }
 #pragma endregion
