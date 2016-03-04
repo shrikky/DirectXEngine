@@ -118,23 +118,19 @@ bool MyDemoGame::Init()
 	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	// Create Material -> Params (Vertexshader, Pixel shader)
-	material = new Material(vertexShader, pixelShader);
+	_cubeMaterial = new Material(vertexShader, pixelShader, device, deviceContext, L"wall2.png");
+	_cubeMaterial2 = new Material(vertexShader, pixelShader, device, deviceContext, L"sphere.jpg");
 
 	// Create Game Objects -> Params(Mesh, Material)
-	sphere = new GameObject(_sphere, material);
-	cube = new GameObject(_cube, material);
+	cube2 = new GameObject(_cube2, _cubeMaterial2);
+	cube = new GameObject(_cube, _cubeMaterial);
 	cube->SetXPosition(-2);
 
 	//  Initialize Lights
 	directionLight.AmbientColor = XMFLOAT4(0, 0, 0, 0.0);
-	directionLight.DiffuseColor = XMFLOAT4(.5, 0, 0, .5f);
+	directionLight.DiffuseColor = XMFLOAT4(1, 1, 1, 1);
 	directionLight.Direction = XMFLOAT3(-3, -1, -2);
 	pixelShader->SetData("directionLight", &directionLight, sizeof(directionLight));
-
-	directionalLight2.AmbientColor = XMFLOAT4(0.1, 0, 0, 0);
-	directionalLight2.DiffuseColor = XMFLOAT4(.25, 1, .2, .5f);
-	directionalLight2.Direction = XMFLOAT3(2, 1, 0);
-	pixelShader->SetData("directionLight2", &directionalLight2, sizeof(directionalLight2));
 
 	pointLight.PointLightColor = XMFLOAT4(0, 0, 1, 0);
 	pointLight.Position = XMFLOAT3(3, 0, -3);
@@ -170,7 +166,7 @@ void MyDemoGame::CreateGeometry()
 	// Create some temporary variables to represent colors
 	// - Not necessary, just makes things more readable
 	_cube = new Mesh(device, "cube.obj");
-	_sphere = new Mesh(device, "sphere.obj");
+	_cube2 = new Mesh(device, "cube.obj");
 }
 
 
@@ -285,8 +281,8 @@ void MyDemoGame::DrawScene(float deltaTime, float totalTime)
 	cube->PrepareMaterial(myCamera->GetviewMatrix(), myCamera->GetProjectionMatrix());
 	cube->Draw(deviceContext);
 
-	sphere->PrepareMaterial(myCamera->GetviewMatrix(), myCamera->GetProjectionMatrix());
-	sphere->Draw(deviceContext);
+	cube2->PrepareMaterial(myCamera->GetviewMatrix(), myCamera->GetProjectionMatrix());
+	cube2->Draw(deviceContext);
 
 	//pixelShader->SetData("cameraPosition", &myCamera->camPosition, sizeof(myCamera->camPosition));
 	pixelShader->SetFloat3("cameraPosition", myCamera->camPosition);

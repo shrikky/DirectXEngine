@@ -1,10 +1,13 @@
 
+Texture2D diffuseTexture : register(t0);
+SamplerState basicSampler : register(s0);
+
 struct VertexToPixel
 {
 	float4 position		: SV_POSITION;
 	float3 normal		: NORMAL;
 	float3 worldPos		: POSITION;
-	//float2 uv			: TEXCOORD;
+	float2 uv			: TEXCOORD;
 };
 
 struct DirectionalLight {
@@ -23,7 +26,7 @@ struct SpecularLight{
 };
 cbuffer externalData : register(b0)
 {
-	DirectionalLight directionLight, directionLight2;   
+	DirectionalLight directionLight;   
 	PointLight pointLight;			
 	SpecularLight specularLight;											
 	float3 cameraPosition;								
@@ -60,16 +63,16 @@ float SpecLight(float3 normal, float3 camDir, float3 lightTowardsPLight, float s
 
 }
 float4 main(VertexToPixel input) : SV_TARGET
-{
+{	
+	float4 surfaceColor = diffuseTexture.Sample(basicSampler, input.uv);
 	float3 output;
 	input.normal = normalize(input.normal);
 	float dist = distance (pointLight.Position,input.worldPos);
 	float3 dirTowardsPointLight = normalize(pointLight.Position - input.worldPos);  
 	float3 dirTowardsCamera = normalize(cameraPosition - input.worldPos);
 	output = 
-	SpecLight(input.normal,dirTowardsCamera,dirTowardsPointLight,specularLight.SpecularStrength) +  // SpecularLight
-	pointLight.PointLightColor * CalculatePointLight(input.normal, dirTowardsPointLight, dist) +	// PointLight
-	CalculateDirectionalLight(input.normal, directionLight);										// DirectionalLight
-	
-	return float4(output,1);
+	SpecLight(input.normal,dirTowardsCamera,dirTowardsPointLight,specularLight.SpecularStrength)  +  // SpecularLight
+	pointLight.PointLightColor * CalculatePointLight(input.normal, dirTowardsPointLight, dist)  +	// PointLight
+	CalculateDirectionalLight(input.normal, directionLight) ;										// DirectionalLight
+	return float4(output,1) * surfaceColor;
 }

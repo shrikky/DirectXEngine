@@ -60,14 +60,15 @@ private:
 
 	// Meshes
 	Mesh* _cube;
-	Mesh* _sphere;
+	Mesh* _cube2;
 
 	// GameObjects
 	GameObject* cube;
-	GameObject* sphere;
+	GameObject* cube2;
 
 	//Misc
-	Material* material;
+	Material* _cubeMaterial2;
+	Material* _cubeMaterial;
 	Camera* myCamera;
 	WPARAM btnState;
 
