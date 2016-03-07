@@ -37,7 +37,8 @@ float4 CalculateDirectionalLight(float3 normal, DirectionalLight light){
 	float3 output;
 	float3 direction = normalize(-light.Direction);
 	normal = normalize(normal);
-	float NdotL = saturate(dot(normal,light.Direction));
+	//float NdotL = saturate(dot(normal,light.Direction));
+	float NdotL = saturate(dot(normal, direction));
 	output = light.DiffuseColor * NdotL;
 	output += light.AmbientColor;
 	return float4(output,1);
@@ -57,8 +58,16 @@ float CalculatePointLight(float3 normal, float3 direction, float dist){
 ///SpecularLight Calculation
 float SpecLight(float3 normal, float3 camDir, float3 lightTowardsPLight, float strength){
 	float spec;
+	/*Phong reflection
 	float3 reflection = reflect(-lightTowardsPLight, normal);
 	spec = pow(max(dot(reflection, camDir),0),16);
+	*/
+	
+	//Blinn-Phong shading model
+	float3 halfway = normalize(lightTowardsPLight + camDir); //halfway vector
+
+	spec = pow(max(dot(halfway, camDir), 0), 64);
+
 	return spec * strength;
 
 }
@@ -74,5 +83,5 @@ float4 main(VertexToPixel input) : SV_TARGET
 	SpecLight(input.normal,dirTowardsCamera,dirTowardsPointLight,specularLight.SpecularStrength)  +  // SpecularLight
 	pointLight.PointLightColor * CalculatePointLight(input.normal, dirTowardsPointLight, dist)  +	// PointLight
 	CalculateDirectionalLight(input.normal, directionLight) ;										// DirectionalLight
-	return float4(output,1) * surfaceColor;
+	return float4(output, 1);// *surfaceColor;
 }

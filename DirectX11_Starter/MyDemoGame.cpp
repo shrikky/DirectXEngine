@@ -128,16 +128,16 @@ bool MyDemoGame::Init()
 
 	//  Initialize Lights
 	directionLight.AmbientColor = XMFLOAT4(0, 0, 0, 0.0);
-	directionLight.DiffuseColor = XMFLOAT4(1, 1, 1, 1);
-	directionLight.Direction = XMFLOAT3(-3, -1, -2);
+	directionLight.DiffuseColor = XMFLOAT4(0.5, 0.5, 0.5, 1);
+	directionLight.Direction = XMFLOAT3(-1, -1, 0);
 	pixelShader->SetData("directionLight", &directionLight, sizeof(directionLight));
 
-	pointLight.PointLightColor = XMFLOAT4(0, 0, 1, 0);
-	pointLight.Position = XMFLOAT3(3, 0, -3);
+	pointLight.PointLightColor = XMFLOAT4(0.5, 0.5, 0.5, 0);
+	pointLight.Position = XMFLOAT3(1, 1, 0);
 	pixelShader->SetData("pointLight", &pointLight, sizeof(pointLight));
 
 	specularLight.SpecularStrength = 0.5f;
-	specularLight.SpecularColor = XMFLOAT4(0, 1, 0,1);
+	specularLight.SpecularColor = XMFLOAT4(0.5, 0.5, 0.5,1);
 	pixelShader->SetData("specularLight", &specularLight, sizeof(specularLight));
 	return true;
 }
@@ -238,10 +238,10 @@ void MyDemoGame::UpdateScene(float deltaTime, float totalTime)
 	//Cube->SetXPosition((totalTime));
 	if (GetAsyncKeyState(VK_SPACE)) {
 		myCamera->SetRotationY(sinf(totalTime));
-		myCamera->VerticalMovement(0.001f);
+		myCamera->VerticalMovement(0.01f);
 	}
 	if (GetAsyncKeyState('X') & 0x8000) {
-		myCamera->VerticalMovement(-0.001f);
+		myCamera->VerticalMovement(-0.01f);
 	}
 	if (GetAsyncKeyState('W') & 0x8000) {
 		myCamera->Forward(0.01f);
