@@ -11,9 +11,15 @@ public:
 	SimpleVertexShader* vertexShader;
 	SimplePixelShader* pixelShader;
 	ID3D11ShaderResourceView* texSRV;
+	ID3D11ShaderResourceView* normalMap;
 	ID3D11SamplerState* samplerState;
 	Material(SimpleVertexShader* vert, SimplePixelShader* pix);
-	Material(SimpleVertexShader* vert, SimplePixelShader* pix,ID3D11Device* device, ID3D11DeviceContext* deviceContext, const wchar_t* textName);
+	Material(	SimpleVertexShader* vert, 
+				SimplePixelShader* pix,
+				ID3D11Device* device, 
+				ID3D11DeviceContext* deviceContext, 
+				const wchar_t* textName,
+				const wchar_t* normalMapFileName);
 	~Material();
 };
 

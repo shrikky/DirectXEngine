@@ -52,10 +52,12 @@ void GameObject::PrepareMaterial(XMFLOAT4X4 view, XMFLOAT4X4 proj) {
 	gameObjectmaterial->vertexShader->SetMatrix4x4("world", worldMatrix);
 	gameObjectmaterial->vertexShader->SetMatrix4x4("view", view);
 	gameObjectmaterial->vertexShader->SetMatrix4x4("projection", proj);
+
+	gameObjectmaterial->pixelShader->SetShaderResourceView("diffuseTexture", gameObjectmaterial->texSRV);
+	gameObjectmaterial->pixelShader->SetShaderResourceView("normalMap", gameObjectmaterial->normalMap);
+	gameObjectmaterial->pixelShader->SetSamplerState("trillinear", gameObjectmaterial->samplerState);
 	gameObjectmaterial->vertexShader->SetShader(true);
 	gameObjectmaterial->pixelShader->SetShader(true);
-	gameObjectmaterial->pixelShader->SetShaderResourceView("diffuseTexture", gameObjectmaterial->texSRV);
-	gameObjectmaterial->pixelShader->SetSamplerState("trillinear", gameObjectmaterial->samplerState);
 }
 
 void GameObject::MoveForward() {

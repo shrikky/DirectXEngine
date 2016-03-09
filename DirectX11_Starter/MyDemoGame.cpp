@@ -23,7 +23,7 @@
 
 #include "MyDemoGame.h"
 #include "Vertex.h"
-#include <iostream>?
+#include <iostream>
 // For the DirectX Math library
 using namespace DirectX;
 
@@ -118,8 +118,8 @@ bool MyDemoGame::Init()
 	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	// Create Material -> Params (Vertexshader, Pixel shader)
-	_cubeMaterial = new Material(vertexShader, pixelShader, device, deviceContext, L"wall2.png");
-	_cubeMaterial2 = new Material(vertexShader, pixelShader, device, deviceContext, L"sphere.jpg");
+	_cubeMaterial = new Material(vertexShader, pixelShader, device, deviceContext, L"rock.jpg", L"rockNormals.jpg");
+	_cubeMaterial2 = new Material(vertexShader, pixelShader, device, deviceContext, L"box.jpg", L"boxnormalmap.jpg");
 
 	// Create Game Objects -> Params(Mesh, Material)
 	cube2 = new GameObject(_cube2, _cubeMaterial2);
@@ -127,17 +127,17 @@ bool MyDemoGame::Init()
 	cube->SetXPosition(-2);
 
 	//  Initialize Lights
-	directionLight.AmbientColor = XMFLOAT4(0, 0, 0, 0.0);
-	directionLight.DiffuseColor = XMFLOAT4(0.5, 0.5, 0.5, 1);
+	directionLight.AmbientColor = XMFLOAT4(0.5, 0.5, 0.5, 0.0);
+	directionLight.DiffuseColor = XMFLOAT4(0, 0.5, 0, 1);
 	directionLight.Direction = XMFLOAT3(-1, -1, 0);
 	pixelShader->SetData("directionLight", &directionLight, sizeof(directionLight));
 
-	pointLight.PointLightColor = XMFLOAT4(0.5, 0.5, 0.5, 0);
+	pointLight.PointLightColor = XMFLOAT4(1, 0, 0, 0);
 	pointLight.Position = XMFLOAT3(1, 1, 0);
 	pixelShader->SetData("pointLight", &pointLight, sizeof(pointLight));
 
 	specularLight.SpecularStrength = 0.5f;
-	specularLight.SpecularColor = XMFLOAT4(0.5, 0.5, 0.5,1);
+	specularLight.SpecularColor = XMFLOAT4(0, 0, 1, 1);
 	pixelShader->SetData("specularLight", &specularLight, sizeof(specularLight));
 	return true;
 }
@@ -165,8 +165,8 @@ void MyDemoGame::CreateGeometry()
 {
 	// Create some temporary variables to represent colors
 	// - Not necessary, just makes things more readable
-	_cube = new Mesh(device, "cube.obj");
-	_cube2 = new Mesh(device, "cube.obj");
+	_cube = new Mesh(device, "sphere.obj");
+	_cube2 = new Mesh(device, "sphere.obj");
 }
 
 
@@ -226,6 +226,9 @@ float x = 0;
 void MyDemoGame::UpdateScene(float deltaTime, float totalTime)
 {
 	GetCursorPos(&p);
+	cube->SetRotation(XMFLOAT3(0, totalTime * 0.2f, 0));
+	cube2->SetRotation(XMFLOAT3(0, totalTime * 0.2f, 0));
+
 	if (btnState & 0x0001) {
 		OnMouseDown(btnState, p.x, p.y);
 

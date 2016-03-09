@@ -33,7 +33,7 @@ public:
 	// Get number of Indices
 	int GetIndexCount();
 
-
+	void CalculateTangents(Vertex* verts, int numVerts, unsigned int* indices, int numIndices);
 	Mesh(int vertNum, Vertex* vert, int indNum, unsigned int* indices, ID3D11Device* deviceObj);
 	Mesh( ID3D11Device* deviceObj, char* filename);
 

@@ -1,11 +1,13 @@
 
-Texture2D diffuseTexture : register(t0);
-SamplerState basicSampler : register(s0);
+Texture2D diffuseTexture	: register(t0);
+Texture2D normalMap			: register(t1);
+SamplerState basicSampler	: register(s0);
 
 struct VertexToPixel
 {
 	float4 position		: SV_POSITION;
 	float3 normal		: NORMAL;
+	float3 tangent		: TANGENT;
 	float3 worldPos		: POSITION;
 	float2 uv			: TEXCOORD;
 };
@@ -71,11 +73,33 @@ float SpecLight(float3 normal, float3 camDir, float3 lightTowardsPLight, float s
 	return spec * strength;
 
 }
+
+float3 NormalMap(VertexToPixel input) {
+	input.normal = normalize(input.normal);
+	input.tangent = normalize(input.tangent);
+
+	// Sample the normal map
+	float3 normalFromMap = normalMap.Sample(basicSampler, input.uv).rgb;
+
+	// Unpack the normal
+	normalFromMap = normalFromMap * 2 - 1;
+
+	// Calculate the TBN matrix to go from tangent-space to world-space
+	float3 N = input.normal;
+	float3 T = normalize(input.tangent - N * dot(input.tangent, N));
+	float3 B = cross(T, N);
+	float3x3 TBN = float3x3(T, B, N);
+
+	// Adjust and overwrite the existing normal
+	return normalize(mul(normalFromMap, TBN));
+}
+
 float4 main(VertexToPixel input) : SV_TARGET
 {	
+	//return float4(normalMap.Sample(basicSampler, input.uv).rgb, 1);
 	float4 surfaceColor = diffuseTexture.Sample(basicSampler, input.uv);
 	float3 output;
-	input.normal = normalize(input.normal);
+	input.normal = NormalMap(input);
 	float dist = distance (pointLight.Position,input.worldPos);
 	float3 dirTowardsPointLight = normalize(pointLight.Position - input.worldPos);  
 	float3 dirTowardsCamera = normalize(cameraPosition - input.worldPos);
@@ -83,5 +107,5 @@ float4 main(VertexToPixel input) : SV_TARGET
 	SpecLight(input.normal,dirTowardsCamera,dirTowardsPointLight,specularLight.SpecularStrength)  +  // SpecularLight
 	pointLight.PointLightColor * CalculatePointLight(input.normal, dirTowardsPointLight, dist)  +	// PointLight
 	CalculateDirectionalLight(input.normal, directionLight) ;										// DirectionalLight
-	return float4(output, 1);// *surfaceColor;
+	return float4(output, 1) * surfaceColor;
 }

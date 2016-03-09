@@ -6,11 +6,17 @@ Material::Material(SimpleVertexShader* vert, SimplePixelShader* pix) {
 	pixelShader = pix;
 }
 
-Material::Material(SimpleVertexShader* vert, SimplePixelShader* pix, ID3D11Device* device, ID3D11DeviceContext* deviceContext, const wchar_t* fileName) {
+Material::Material(SimpleVertexShader* vert, 
+					SimplePixelShader* pix, 
+					ID3D11Device* device, 
+					ID3D11DeviceContext* deviceContext, 
+					const wchar_t* fileName,
+					const wchar_t* normalMapFileName) {
 	vertexShader = vert;
 	pixelShader = pix;
 
 	CreateWICTextureFromFile(device, deviceContext, fileName, 0, &texSRV);
+	CreateWICTextureFromFile(device, deviceContext, normalMapFileName, 0, &normalMap);
 	D3D11_SAMPLER_DESC samplerDesc = {};
 	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
 	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
