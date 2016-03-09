@@ -127,8 +127,8 @@ bool MyDemoGame::Init()
 	cube->SetXPosition(-2);
 
 	//  Initialize Lights
-	directionLight.AmbientColor = XMFLOAT4(0.5, 0.5, 0.5, 0.0);
-	directionLight.DiffuseColor = XMFLOAT4(0, 0.5, 0, 1);
+	directionLight.AmbientColor = XMFLOAT4(0, 0,0, 0.0);
+	directionLight.DiffuseColor = XMFLOAT4(0.5, 0.5, 0.5, 1);
 	directionLight.Direction = XMFLOAT3(-1, -1, 0);
 	pixelShader->SetData("directionLight", &directionLight, sizeof(directionLight));
 
@@ -166,7 +166,7 @@ void MyDemoGame::CreateGeometry()
 	// Create some temporary variables to represent colors
 	// - Not necessary, just makes things more readable
 	_cube = new Mesh(device, "sphere.obj");
-	_cube2 = new Mesh(device, "sphere.obj");
+	_cube2 = new Mesh(device, "cube.obj");
 }
 
 
@@ -270,7 +270,7 @@ void MyDemoGame::UpdateScene(float deltaTime, float totalTime)
 void MyDemoGame::DrawScene(float deltaTime, float totalTime)
 {
 	// Background color (Cornflower Blue in this case) for clearing
-	const float color[4] = {0.4f, 0.6f, 0.75f, 0.0f};
+	const float color[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 
 	// Clear the render target and depth buffer (erases what's on the screen)
 	//  - Do this ONCE PER FRAME

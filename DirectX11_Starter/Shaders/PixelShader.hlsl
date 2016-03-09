@@ -68,7 +68,7 @@ float SpecLight(float3 normal, float3 camDir, float3 lightTowardsPLight, float s
 	//Blinn-Phong shading model
 	float3 halfway = normalize(lightTowardsPLight + camDir); //halfway vector
 
-	spec = pow(max(dot(halfway, camDir), 0), 64);
+	spec = pow(max(dot(halfway, camDir), 0), 16);
 
 	return spec * strength;
 
@@ -104,8 +104,7 @@ float4 main(VertexToPixel input) : SV_TARGET
 	float3 dirTowardsPointLight = normalize(pointLight.Position - input.worldPos);  
 	float3 dirTowardsCamera = normalize(cameraPosition - input.worldPos);
 	output = 
-	SpecLight(input.normal,dirTowardsCamera,dirTowardsPointLight,specularLight.SpecularStrength)  +  // SpecularLight
 	pointLight.PointLightColor * CalculatePointLight(input.normal, dirTowardsPointLight, dist)  +	// PointLight
 	CalculateDirectionalLight(input.normal, directionLight) ;										// DirectionalLight
-	return float4(output, 1) * surfaceColor;
+	return float4(output, 1) * surfaceColor + float4(SpecLight(input.normal, dirTowardsCamera, dirTowardsPointLight, specularLight.SpecularStrength).xxx, 1)  ;
 }
