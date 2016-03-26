@@ -23,7 +23,7 @@
 
 #include "MyDemoGame.h"
 #include "Vertex.h"
-#include <iostream>
+#include <iostream>?
 // For the DirectX Math library
 using namespace DirectX;
 
@@ -118,8 +118,8 @@ bool MyDemoGame::Init()
 	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	// Create Material -> Params (Vertexshader, Pixel shader)
-	_cubeMaterial = new Material(vertexShader, pixelShader, device, deviceContext, L"rock.jpg", L"rockNormals.jpg");
-	_cubeMaterial2 = new Material(vertexShader, pixelShader, device, deviceContext, L"box.jpg", L"boxnormalmap.jpg");
+	_cubeMaterial = new Material(vertexShader, pixelShader, device, deviceContext, L"brickwall.jpg");
+	_cubeMaterial2 = new Material(vertexShader, normalMappingShader, device, deviceContext, L"brickwall.jpg",L"brickwall_normal.jpg");
 
 	// Create Game Objects -> Params(Mesh, Material)
 	cube2 = new GameObject(_cube2, _cubeMaterial2);
@@ -127,18 +127,22 @@ bool MyDemoGame::Init()
 	cube->SetXPosition(-2);
 
 	//  Initialize Lights
-	directionLight.AmbientColor = XMFLOAT4(0, 0,0, 0.0);
-	directionLight.DiffuseColor = XMFLOAT4(0.5, 0.5, 0.5, 1);
-	directionLight.Direction = XMFLOAT3(-1, -1, 0);
-	pixelShader->SetData("directionLight", &directionLight, sizeof(directionLight));
+	directionLight.AmbientColor = XMFLOAT4(0, 0, 0, 0.0);
+	directionLight.DiffuseColor = XMFLOAT4(1, 1, 1, 1);
+	directionLight.Direction = XMFLOAT3(-3, -1, -2);
 
-	pointLight.PointLightColor = XMFLOAT4(1, 0, 0, 0);
-	pointLight.Position = XMFLOAT3(1, 1, 0);
+	pixelShader->SetData("directionLight", &directionLight, sizeof(directionLight));
+	normalMappingShader->SetData("directionLight", &directionLight, sizeof(directionLight));
+
+	pointLight.PointLightColor = XMFLOAT4(0, 0, 1, 0);
+	pointLight.Position = XMFLOAT3(1, 0, -1);
 	pixelShader->SetData("pointLight", &pointLight, sizeof(pointLight));
+	normalMappingShader->SetData("directionLight", &directionLight, sizeof(directionLight));
 
 	specularLight.SpecularStrength = 0.5f;
-	specularLight.SpecularColor = XMFLOAT4(0, 0, 1, 1);
+	specularLight.SpecularColor = XMFLOAT4(0, 1, 0,1);
 	pixelShader->SetData("specularLight", &specularLight, sizeof(specularLight));
+	normalMappingShader->SetData("directionLight", &directionLight, sizeof(directionLight));
 	return true;
 }
 
@@ -155,6 +159,9 @@ void MyDemoGame::LoadShaders()
 
 	pixelShader = new SimplePixelShader(device, deviceContext);
 	pixelShader->LoadShaderFile(L"PixelShader.cso");
+
+	normalMappingShader = new SimplePixelShader(device, deviceContext);
+	normalMappingShader->LoadShaderFile(L"NormalMapping.cso");
 }
 
 
@@ -165,7 +172,7 @@ void MyDemoGame::CreateGeometry()
 {
 	// Create some temporary variables to represent colors
 	// - Not necessary, just makes things more readable
-	_cube = new Mesh(device, "sphere.obj");
+	_cube = new Mesh(device, "cube.obj");
 	_cube2 = new Mesh(device, "cube.obj");
 }
 
@@ -226,9 +233,6 @@ float x = 0;
 void MyDemoGame::UpdateScene(float deltaTime, float totalTime)
 {
 	GetCursorPos(&p);
-	cube->SetRotation(XMFLOAT3(0, totalTime * 0.2f, 0));
-	cube2->SetRotation(XMFLOAT3(0, totalTime * 0.2f, 0));
-
 	if (btnState & 0x0001) {
 		OnMouseDown(btnState, p.x, p.y);
 
@@ -241,10 +245,10 @@ void MyDemoGame::UpdateScene(float deltaTime, float totalTime)
 	//Cube->SetXPosition((totalTime));
 	if (GetAsyncKeyState(VK_SPACE)) {
 		myCamera->SetRotationY(sinf(totalTime));
-		myCamera->VerticalMovement(0.01f);
+		myCamera->VerticalMovement(0.001f);
 	}
 	if (GetAsyncKeyState('X') & 0x8000) {
-		myCamera->VerticalMovement(-0.01f);
+		myCamera->VerticalMovement(-0.001f);
 	}
 	if (GetAsyncKeyState('W') & 0x8000) {
 		myCamera->Forward(0.01f);
@@ -270,7 +274,7 @@ void MyDemoGame::UpdateScene(float deltaTime, float totalTime)
 void MyDemoGame::DrawScene(float deltaTime, float totalTime)
 {
 	// Background color (Cornflower Blue in this case) for clearing
-	const float color[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+	const float color[4] = {0.4f, 0.6f, 0.75f, 0.0f};
 
 	// Clear the render target and depth buffer (erases what's on the screen)
 	//  - Do this ONCE PER FRAME
@@ -281,9 +285,9 @@ void MyDemoGame::DrawScene(float deltaTime, float totalTime)
 		D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL,
 		1.0f,
 		0);
+
 	cube->PrepareMaterial(myCamera->GetviewMatrix(), myCamera->GetProjectionMatrix());
 	cube->Draw(deviceContext);
-
 	cube2->PrepareMaterial(myCamera->GetviewMatrix(), myCamera->GetProjectionMatrix());
 	cube2->Draw(deviceContext);
 

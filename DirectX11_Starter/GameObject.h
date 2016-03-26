@@ -49,8 +49,7 @@ public:
 		position = pos;
 	}
 	void SetRotation(XMFLOAT3 rot) {
-		rotation = rot;
-		SetWorldMatrix();
+		position = rot;
 	}
 
 	void SetRotationY(float y) {

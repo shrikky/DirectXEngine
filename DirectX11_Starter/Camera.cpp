@@ -74,11 +74,9 @@ void Camera::MouseMovement(float x, float y) {
 	newCameraDir = XMVector3Transform(newCameraDir, YawMatrix);
 	XMStoreFloat3(&forwardVector, newCameraDir);
 
-	/*I comment this code cause when it rotate the up vecotor, camera will be in a wrong rotation
 	XMVECTOR newUpVector = XMLoadFloat3(&upDirection);
 	newUpVector = XMVector3Transform(newUpVector, PitchMatrix);
 	XMStoreFloat3(&upDirection, newUpVector);
-	*/
 }
 
 void Camera::VerticalMovement(float disp) {

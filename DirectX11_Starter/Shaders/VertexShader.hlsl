@@ -9,22 +9,22 @@ cbuffer externalData : register(b0)
 // Vertex data
 struct VertexShaderInput
 { 
-	float3 position		: POSITION;     // XYZ position
+	float3 position		: POSITION;
+	float2 uv			: TEXCOORD;
 	float3 normal		: NORMAL;
 	float3 tangent		: TANGENT;
-	float2 uv			: TEXCOORD;
 };
 
 // Output struct of Vertex shader
 struct VertexToPixel
 {	
 
-	float4 position		: SV_POSITION;	// XYZW position (System Value Position)
-	float3 normal		: NORMAL;
+	float4 position		: SV_POSITION;
+	float3 normal       : NORMAL;
 	float3 tangent		: TANGENT;
-	float3 worldPos		: POSITION;   
-	float2 uv			: TEXCOORD;
-     // RGBA color
+	float3 worldPos     : TEXCOORD0;
+	float2 uv           : TEXCOORD1;
+	// RGBA color
 };
 
 VertexToPixel main( VertexShaderInput input )
@@ -34,10 +34,10 @@ VertexToPixel main( VertexShaderInput input )
 	matrix worldViewProj = mul(mul(world, view), projection);
 	output.position = mul(float4(input.position, 1.0f), worldViewProj);
 	output.normal = mul(input.normal, (float3x3)world );
-	output.normal = normalize(input.normal);
 	output.tangent = mul(input.tangent, (float3x3)world);
+
+	output.normal = normalize(input.normal);
 	output.worldPos = mul(float4(input.position, 1.0f),world).xyz;
 	output.uv = input.uv;
-
 	return output;
 }

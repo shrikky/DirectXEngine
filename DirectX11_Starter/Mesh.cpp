@@ -143,9 +143,6 @@ Mesh::Mesh(ID3D11Device* deviceObj, char* filename) {
 	// Close
 	obj.close();
 
-	//calculate vertex tangent
-	CalculateTangents(&verts[0], vertCounter, &indices[0], vertCounter);
-
 	numOfIndices = indices.size();
 	// Create vertexBuffers
 	D3D11_BUFFER_DESC vbd;
@@ -174,6 +171,8 @@ Mesh::Mesh(ID3D11Device* deviceObj, char* filename) {
 	indData.pSysMem = &indices[0];
 	// Create Index Buffer with the data.
 	HR(deviceObj->CreateBuffer(&ibd, &indData, &iBuffer));
+
+	//CalculateTangents(&verts[0], verts.size(), &indices[0], numOfIndices);
 }
 Mesh::~Mesh()
 {
@@ -182,18 +181,6 @@ Mesh::~Mesh()
 	ReleaseMacro(iBuffer);
 
 }
-ID3D11Buffer* Mesh::GetIndexBuffer() {
-	return iBuffer;
-}
-int Mesh::GetIndexCount() {
-	return numOfIndices;
-}
-ID3D11Buffer* Mesh::GetVertexBuffer() {
-	return vBuffer;
-}
-
-// Calculates the tangents of the vertices in a mesh
-// Code adapted from: http://www.terathon.com/code/tangent.html
 void Mesh::CalculateTangents(Vertex* verts, int numVerts, unsigned int* indices, int numIndices)
 {
 	// Reset tangents
@@ -264,4 +251,14 @@ void Mesh::CalculateTangents(Vertex* verts, int numVerts, unsigned int* indices,
 		// Store the tangent
 		XMStoreFloat3(&verts[i].Tangent, tangent);
 	}
+}
+
+ID3D11Buffer* Mesh::GetIndexBuffer() {
+	return iBuffer;
+}
+int Mesh::GetIndexCount() {
+	return numOfIndices;
+}
+ID3D11Buffer* Mesh::GetVertexBuffer() {
+	return vBuffer;
 }
