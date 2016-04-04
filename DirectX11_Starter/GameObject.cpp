@@ -26,6 +26,7 @@ void GameObject::Draw(ID3D11DeviceContext* deviceContext) {
 	deviceContext->IASetVertexBuffers(0, 1, &temp, &stride, &offset);
 	deviceContext->IASetIndexBuffer(gameObjectMesh->GetIndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
 
+
 	// Finally do the actual drawing
 	//  - Do this ONCE PER OBJECT you intend to draw
 	//  - This will use all of the currently set DirectX "stuff" (shaders, buffers, etc)

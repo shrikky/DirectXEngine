@@ -6,6 +6,8 @@
 #include "Mesh.h"
 #include <d3d11.h>
 #include "Material.h"
+#include "imgui_impl_dx11.h"
+
 using namespace DirectX;
 class GameObject
 {

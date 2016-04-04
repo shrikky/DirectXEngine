@@ -9,6 +9,9 @@
 #include "Mesh.h"
 #include <math.h>
 #include "Lights.h"
+#include "imgui_impl_dx11.h"
+#include <imgui.h>
+#include <d3d11.h>
 // Include run-time memory checking in debug builds, so 
 // we can be notified of memory leaks
 #if defined(DEBUG) || defined(_DEBUG)
@@ -78,4 +81,8 @@ private:
 	DirectionLight directionalLight2;
 	PointLight pointLight;
 	SpecularLight specularLight;
+
+	bool show_test_window = true;
+	bool show_another_window = false;
+	ImVec4 clear_col = ImColor(114, 144, 154);
 };
