@@ -23,7 +23,7 @@
 
 #include "MyDemoGame.h"
 #include "Vertex.h"
-#include <iostream>?
+#include <iostream>
 // For the DirectX Math library
 using namespace DirectX;
 
@@ -143,6 +143,11 @@ bool MyDemoGame::Init()
 	specularLight.SpecularColor = XMFLOAT4(0, 1, 0,1);
 	pixelShader->SetData("specularLight", &specularLight, sizeof(specularLight));
 	normalMappingShader->SetData("directionLight", &directionLight, sizeof(directionLight));
+
+	//Gui initialization
+	ImGui_ImplDX11_Init(hMainWnd, device, deviceContext);
+
+
 	return true;
 }
 
@@ -266,6 +271,8 @@ void MyDemoGame::UpdateScene(float deltaTime, float totalTime)
 	myCamera->Update();
 	viewMatrix = myCamera->GetviewMatrix();
 	
+	
+	
 }
 
 // --------------------------------------------------------
@@ -273,6 +280,8 @@ void MyDemoGame::UpdateScene(float deltaTime, float totalTime)
 // --------------------------------------------------------
 void MyDemoGame::DrawScene(float deltaTime, float totalTime)
 {
+
+	
 	// Background color (Cornflower Blue in this case) for clearing
 	const float color[4] = {0.4f, 0.6f, 0.75f, 0.0f};
 
@@ -293,6 +302,12 @@ void MyDemoGame::DrawScene(float deltaTime, float totalTime)
 
 	//pixelShader->SetData("cameraPosition", &myCamera->camPosition, sizeof(myCamera->camPosition));
 	pixelShader->SetFloat3("cameraPosition", myCamera->camPosition);
+
+	//Imgui code 
+	ImGui_ImplDX11_NewFrame();
+	ImGui::Text("Hello, world!");
+	ImGui::Render();
+	
 	HR(swapChain->Present(0, 0));
 }
 

@@ -16,6 +16,9 @@
     <Filter Include="Shaders">
       <UniqueIdentifier>{e11479ef-8a44-4ba5-9d5a-c14237485115}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ImGui">
+      <UniqueIdentifier>{46a87147-fec7-4061-8150-bc8b28077911}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dxerr.cpp">
@@ -44,6 +47,18 @@
     </ClCompile>
     <ClCompile Include="Material.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui_impl_dx11.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Gui\imgui.cpp">
+      <Filter>ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Gui\imgui_demo.cpp">
+      <Filter>ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Gui\imgui_draw.cpp">
+      <Filter>ImGui</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -79,6 +94,18 @@
     </ClInclude>
     <ClInclude Include="Lights.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui_impl_dx11.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Gui\imconfig.h">
+      <Filter>ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Gui\imgui.h">
+      <Filter>ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Gui\imgui_internal.h">
+      <Filter>ImGui</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
