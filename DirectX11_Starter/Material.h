@@ -12,10 +12,11 @@ public:
 	SimplePixelShader* pixelShader;
 	ID3D11ShaderResourceView* texSRV;
 	ID3D11ShaderResourceView* nMap;
+	ID3D11ShaderResourceView* dMap;
 	ID3D11SamplerState* samplerState;
 	Material(SimpleVertexShader* vert, SimplePixelShader* pix);
 	Material(SimpleVertexShader* vert, SimplePixelShader* pix,ID3D11Device* device, ID3D11DeviceContext* deviceContext, const wchar_t* textName);
-	Material::Material(SimpleVertexShader* vert, SimplePixelShader* pix, ID3D11Device* device, ID3D11DeviceContext* deviceContext, const wchar_t* texture, const wchar_t* normalMap);
+	Material::Material(SimpleVertexShader* vert, SimplePixelShader* pix, ID3D11Device* device, ID3D11DeviceContext* deviceContext, const wchar_t* texture, const wchar_t* normalMap, const wchar_t* depthMap =0);
 	~Material();
 };
 

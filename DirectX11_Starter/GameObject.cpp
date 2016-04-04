@@ -40,8 +40,8 @@ void GameObject::SetWorldMatrix() {
 	XMMATRIX trans = XMMatrixTranslation(position.x, position.y, position.z);
 	XMMATRIX rot = XMMatrixRotationY(rotation.y);
 	XMMATRIX scaleMatrix = XMMatrixScaling(scale.x, scale.y, scale.z);
-	XMMATRIX world = scaleMatrix * rot * trans;
-	XMStoreFloat4x4(&worldMatrix, XMMatrixTranspose(world));
+	XMMATRIX model = scaleMatrix * rot * trans;
+	XMStoreFloat4x4(&worldMatrix, XMMatrixTranspose(model));	//Setting matrix as transpose
 }
 void GameObject::Move() {
 	position.x = 5.0f;
@@ -50,6 +50,7 @@ void GameObject::Move() {
 void GameObject::PrepareMaterial(XMFLOAT4X4 view, XMFLOAT4X4 proj) {
 
 	gameObjectmaterial->vertexShader->SetMatrix4x4("world", worldMatrix);
+	gameObjectmaterial->vertexShader->SetMatrix4x4("model", modelMatrix);
 	gameObjectmaterial->vertexShader->SetMatrix4x4("view", view);
 	gameObjectmaterial->vertexShader->SetMatrix4x4("projection", proj);
 	gameObjectmaterial->vertexShader->SetShader(true);
@@ -58,6 +59,7 @@ void GameObject::PrepareMaterial(XMFLOAT4X4 view, XMFLOAT4X4 proj) {
 	gameObjectmaterial->pixelShader->SetSamplerState("trillinear", gameObjectmaterial->samplerState);
 	if (gameObjectmaterial->nMap!=nullptr)
 	gameObjectmaterial->pixelShader->SetShaderResourceView("normalMap", gameObjectmaterial->nMap);
+	gameObjectmaterial->pixelShader->SetShaderResourceView("depthMap", gameObjectmaterial->dMap);
 }
 
 void GameObject::MoveForward() {

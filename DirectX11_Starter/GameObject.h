@@ -11,6 +11,7 @@ class GameObject
 {
 public:
 	XMFLOAT4X4 worldMatrix;
+	XMFLOAT4X4 modelMatrix;
 	XMFLOAT3 position;
 	XMFLOAT3 rotation;
 	XMFLOAT3 scale;

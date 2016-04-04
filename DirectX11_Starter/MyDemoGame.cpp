@@ -118,31 +118,41 @@ bool MyDemoGame::Init()
 	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	// Create Material -> Params (Vertexshader, Pixel shader)
-	_cubeMaterial = new Material(vertexShader, pixelShader, device, deviceContext, L"brickwall.jpg");
-	_cubeMaterial2 = new Material(vertexShader, normalMappingShader, device, deviceContext, L"brickwall.jpg",L"brickwall_normal.jpg");
+	_cubeMaterial = new Material(vertexShader, normalMappingPS, device, deviceContext, L"bricks2.jpg");
+	_cubeMaterial2 = new Material(parallaxVS, parallaxPS, device, deviceContext, L"bricks2.jpg",L"bricks2_normal.jpg",L"bricks2_disp.jpg");
 
 	// Create Game Objects -> Params(Mesh, Material)
-	cube2 = new GameObject(_cube2, _cubeMaterial2);
 	cube = new GameObject(_cube, _cubeMaterial);
+	cube2 = new GameObject(_cube2, _cubeMaterial2);
+
 	cube->SetXPosition(-2);
 
 	//  Initialize Lights
-	directionLight.AmbientColor = XMFLOAT4(0, 0, 0, 0.0);
-	directionLight.DiffuseColor = XMFLOAT4(1, 1, 1, 1);
-	directionLight.Direction = XMFLOAT3(-3, -1, -2);
+
+	//Directional Light
+	directionLight.AmbientColor = XMFLOAT4(1, 0, 0, 0.0);
+	directionLight.DiffuseColor = XMFLOAT4(0, 1, 0, 0);
+	directionLight.Direction = XMFLOAT3(0, 0, -1);
 
 	pixelShader->SetData("directionLight", &directionLight, sizeof(directionLight));
-	normalMappingShader->SetData("directionLight", &directionLight, sizeof(directionLight));
-
-	pointLight.PointLightColor = XMFLOAT4(0, 0, 1, 0);
-	pointLight.Position = XMFLOAT3(1, 0, -1);
+	normalMappingPS->SetData("directionLight", &directionLight, sizeof(directionLight));
+	parallaxPS->SetData("directionLight", &directionLight, sizeof(directionLight));
+	
+	//Point Light
+	pointLight.PointLightColor = XMFLOAT4(0, 1, 0, 0);
+	pointLight.Position = XMFLOAT3(0, 0, -2);
+	pointLight.Strength = 1;
 	pixelShader->SetData("pointLight", &pointLight, sizeof(pointLight));
-	normalMappingShader->SetData("directionLight", &directionLight, sizeof(directionLight));
-
+	normalMappingPS->SetData("pointLight", &pointLight, sizeof(pointLight));
+	parallaxPS->SetData("pointLight", &pointLight, sizeof(pointLight));
+	parallaxVS->SetFloat3("lightPos", pointLight.Position);
+	// Specular Light
 	specularLight.SpecularStrength = 0.5f;
-	specularLight.SpecularColor = XMFLOAT4(0, 1, 0,1);
+	specularLight.SpecularColor = XMFLOAT4(1, 0, 0, 1);
 	pixelShader->SetData("specularLight", &specularLight, sizeof(specularLight));
-	normalMappingShader->SetData("directionLight", &directionLight, sizeof(directionLight));
+	normalMappingPS->SetData("specularLight", &specularLight, sizeof(specularLight));
+	parallaxPS->SetData("specularLight", &specularLight, sizeof(specularLight));
+
 	return true;
 }
 
@@ -160,8 +170,14 @@ void MyDemoGame::LoadShaders()
 	pixelShader = new SimplePixelShader(device, deviceContext);
 	pixelShader->LoadShaderFile(L"PixelShader.cso");
 
-	normalMappingShader = new SimplePixelShader(device, deviceContext);
-	normalMappingShader->LoadShaderFile(L"NormalMapping.cso");
+	normalMappingPS = new SimplePixelShader(device, deviceContext);
+	normalMappingPS->LoadShaderFile(L"NormalMapping.cso");
+
+	parallaxVS = new SimpleVertexShader(device, deviceContext);
+	parallaxVS->LoadShaderFile(L"ParallaxVertexShader.cso");
+
+	parallaxPS = new SimplePixelShader(device, deviceContext);
+	parallaxPS->LoadShaderFile(L"ParallaxMapping.cso");
 }
 
 
@@ -293,6 +309,8 @@ void MyDemoGame::DrawScene(float deltaTime, float totalTime)
 
 	//pixelShader->SetData("cameraPosition", &myCamera->camPosition, sizeof(myCamera->camPosition));
 	pixelShader->SetFloat3("cameraPosition", myCamera->camPosition);
+	parallaxPS->SetFloat3("cameraPosition", myCamera->camPosition);
+	parallaxVS->SetFloat3("viewPos", myCamera->camPosition);
 	HR(swapChain->Present(0, 0));
 }
 

@@ -21,11 +21,13 @@ Material::Material(SimpleVertexShader* vert, SimplePixelShader* pix, ID3D11Devic
 
 }
 
-Material::Material(SimpleVertexShader* vert, SimplePixelShader* pix, ID3D11Device* device, ID3D11DeviceContext* deviceContext, const wchar_t* texture, const wchar_t* normalMap) {
+Material::Material(SimpleVertexShader* vert, SimplePixelShader* pix, ID3D11Device* device, ID3D11DeviceContext* deviceContext, const wchar_t* texture, const wchar_t* normalMap, const wchar_t* depthMap) {
 	vertexShader = vert;
 	pixelShader = pix;
 	CreateWICTextureFromFile(device, deviceContext, texture, 0, &texSRV);
 	CreateWICTextureFromFile(device, deviceContext, normalMap, 0, &nMap);
+	if(depthMap)
+	CreateWICTextureFromFile(device, deviceContext, depthMap, 0, &dMap);
 	D3D11_SAMPLER_DESC samplerDesc = {};
 	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
 	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
