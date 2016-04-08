@@ -107,7 +107,10 @@ private:
 	SpecularLight specularLight;
 
 	std::vector<ID3D11ShaderResourceView*> srvContainer;
-	bool show_test_window = true;
+	bool show_test_window = false;
 	bool show_another_window = false;
 	ImVec4 clear_col = ImColor(114, 144, 154);
+	 float r = 1.0f;
+	 float g = 0.0f;
+	 float b = 0.0f;
 };
