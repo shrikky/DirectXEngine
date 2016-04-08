@@ -12,6 +12,8 @@
 #include "imgui_impl_dx11.h"
 #include <imgui.h>
 #include <d3d11.h>
+#include <vector>
+#include "SkyBox.h"
 // Include run-time memory checking in debug builds, so 
 // we can be notified of memory leaks
 #if defined(DEBUG) || defined(_DEBUG)
@@ -47,12 +49,17 @@ private:
 	void CreateGeometry();
 	void CreateMatrices();
 
+
 	// Wrappers for DirectX shaders to provide simplified functionality
 	SimpleVertexShader* vertexShader;
 	SimplePixelShader* pixelShader;
 	SimplePixelShader* normalMappingPS;
 	SimpleVertexShader* parallaxVS;
 	SimplePixelShader* parallaxPS;
+	SimpleVertexShader* skyVS;
+	SimplePixelShader* skyPS;
+
+
 	// The matrices to go from model space to screen space
 	DirectX::XMFLOAT4X4 worldMatrix;
 	DirectX::XMFLOAT4X4 viewMatrix;
@@ -66,14 +73,31 @@ private:
 	// Meshes
 	Mesh* _cube;
 	Mesh* _cube2;
+	Mesh* sbCube;
 
 	// GameObjects
-	GameObject* cube;
-	GameObject* cube2;
+	std::vector<GameObject*> gameObjects;
 
-	//Misc
+	//Skyboxes
+	SkyBox* _skybox;
+	//SRV
+	ID3D11ShaderResourceView* texSRV = 0;
+	ID3D11ShaderResourceView* texSRV1 = 0;
+	ID3D11ShaderResourceView* nMapSRV = 0;
+	ID3D11ShaderResourceView* dMapSRV = 0;
+	ID3D11ShaderResourceView* skySRV = 0;
+
+	// Samplers
+	ID3D11SamplerState* samplerState;
+	ID3D11RasterizerState*		rasState;
+	ID3D11DepthStencilState*	depthState;
+
+	//Materials
 	Material* _cubeMaterial2;
 	Material* _cubeMaterial;
+	Material* skyBoxMaterial;
+
+
 	Camera* myCamera;
 	WPARAM btnState;
 
@@ -82,6 +106,7 @@ private:
 	PointLight pointLight;
 	SpecularLight specularLight;
 
+	std::vector<ID3D11ShaderResourceView*> srvContainer;
 	bool show_test_window = true;
 	bool show_another_window = false;
 	ImVec4 clear_col = ImColor(114, 144, 154);

@@ -8,6 +8,7 @@ cbuffer externalData : register(b0)
 	matrix model;
 	float3 lightPos;
 	float3 viewPos;
+	float3 dLightPos;
 };
 // Vertex data
 struct VertexShaderInput
@@ -26,6 +27,7 @@ struct VertexToPixel
 	float2 uv           : TEXCOORD1;
 	float3 normal       : NORMAL;
 	float3 TangentPLightPos	: TEXCOORD2;
+	float3 TangentDLightPos	: TEXCOORD5;
     float3 TangentViewPos	: TEXCOORD3;
     float3 TangentFragPos	: TEXCOORD4;
 };
@@ -48,6 +50,7 @@ VertexToPixel main( VertexShaderInput input )
 	float3 B = cross(T,N);
     float3x3 TBN = float3x3(T, B, N);
 	output.TangentPLightPos = mul(TBN , lightPos);
+	output.TangentDLightPos = mul(TBN , dLightPos);
     output.TangentViewPos  =  mul(TBN , viewPos);
     output.TangentFragPos  = mul(TBN, worldPos);
 	return output;

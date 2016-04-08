@@ -5,7 +5,7 @@
 GameObject::GameObject(Mesh *mesh, Material* material)
 {
 	gameObjectMesh = mesh;
-	position = XMFLOAT3(1.0f, 0.0f, 0.0f);
+	position = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	scale = XMFLOAT3(1.0f, 1.0f, 1.0f);
 	gameObjectmaterial = material;
@@ -32,6 +32,7 @@ void GameObject::Draw(ID3D11DeviceContext* deviceContext) {
 	//  - This will use all of the currently set DirectX "stuff" (shaders, buffers, etc)
 	//  - DrawIndexed() uses the currently set INDEX BUFFER to look up corresponding
 	//     vertices in the currently set VERTEX BUFFER
+
 	deviceContext->DrawIndexed(
 		gameObjectMesh->GetIndexCount(),     // The number of indices to use (we could draw a subset if we wanted)
 		0,								// Offset to the first index we want to use
@@ -54,13 +55,9 @@ void GameObject::PrepareMaterial(XMFLOAT4X4 view, XMFLOAT4X4 proj) {
 	gameObjectmaterial->vertexShader->SetMatrix4x4("model", modelMatrix);
 	gameObjectmaterial->vertexShader->SetMatrix4x4("view", view);
 	gameObjectmaterial->vertexShader->SetMatrix4x4("projection", proj);
+	gameObjectmaterial->UpdateShaderResources();
 	gameObjectmaterial->vertexShader->SetShader(true);
 	gameObjectmaterial->pixelShader->SetShader(true);
-	gameObjectmaterial->pixelShader->SetShaderResourceView("diffuseTexture", gameObjectmaterial->texSRV);
-	gameObjectmaterial->pixelShader->SetSamplerState("trillinear", gameObjectmaterial->samplerState);
-	if (gameObjectmaterial->nMap!=nullptr)
-	gameObjectmaterial->pixelShader->SetShaderResourceView("normalMap", gameObjectmaterial->nMap);
-	gameObjectmaterial->pixelShader->SetShaderResourceView("depthMap", gameObjectmaterial->dMap);
 }
 
 void GameObject::MoveForward() {

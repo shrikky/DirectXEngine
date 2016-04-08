@@ -1,7 +1,7 @@
 
 Texture2D diffuseTexture	: register(t0);
 Texture2D normalMap			:register(t1);
-SamplerState basicSampler	: register(s0);
+SamplerState trillinear	: register(s0);
 
 struct VertexToPixel
 {
@@ -77,7 +77,7 @@ float4 main(VertexToPixel input) : SV_TARGET
 	float dist = distance (pointLight.Position,input.worldPos);
 	float3 dirTowardsPointLight = normalize(pointLight.Position - input.worldPos);  
 	float3 dirTowardsCamera = normalize(cameraPosition - input.worldPos);
-	float4 surfaceColor = diffuseTexture.Sample(basicSampler, input.uv);
+	float4 surfaceColor = diffuseTexture.Sample(trillinear, input.uv);
 
 	output =
 		SpecLight(input.normal, dirTowardsCamera, dirTowardsPointLight, 1.0f) +

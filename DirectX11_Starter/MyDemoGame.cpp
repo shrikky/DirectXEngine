@@ -24,6 +24,8 @@
 #include "MyDemoGame.h"
 #include "Vertex.h"
 #include <iostream>
+#include "DDSTextureLoader.h"
+
 // For the DirectX Math library
 using namespace DirectX;
 
@@ -88,6 +90,21 @@ MyDemoGame::~MyDemoGame()
 	// Delete our simple shaders
 	delete vertexShader;
 	delete pixelShader;
+	delete parallaxVS;
+	delete parallaxPS;
+	delete skyVS;
+	delete skyPS;
+	delete normalMappingPS;
+	
+
+	std::vector<GameObject*>::iterator it;
+	for (it = gameObjects.begin(); it != gameObjects.end(); ++it) {
+		delete (*it);
+	}
+	std::vector<ID3D11ShaderResourceView*>::iterator it1;
+	for (it1 = srvContainer.begin(); it1 != srvContainer.end(); ++it1) {
+		(*it1)->Release();
+	}
 }
 
 #pragma endregion
@@ -117,19 +134,32 @@ bool MyDemoGame::Init()
 	// geometric primitives we'll be using and how to interpret them
 	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
+	//Create Materials
+	skyBoxMaterial = new Material(&skyVS, &skyPS);
+	skyBoxMaterial->Skybox(&skyVS, &skyPS, &device, &deviceContext, &samplerState, &skySRV, &rasState, &depthState, L"SunnyCubeMap.dds");
+	_cubeMaterial = new Material(&vertexShader, &normalMappingPS, &device, &deviceContext, &samplerState, &texSRV, L"bricks2.jpg");
+	_cubeMaterial2 = new Material(&parallaxVS, &parallaxPS, &device, &deviceContext, &samplerState, &texSRV1,L"bricks2.jpg", &nMapSRV, L"bricks2_normal.jpg",&dMapSRV,L"bricks2_disp.jpg");
 	// Create Material -> Params (Vertexshader, Pixel shader)
-	_cubeMaterial = new Material(vertexShader, normalMappingPS, device, deviceContext, L"bricks2.jpg");
-	_cubeMaterial2 = new Material(parallaxVS, parallaxPS, device, deviceContext, L"bricks2.jpg",L"bricks2_normal.jpg",L"bricks2_disp.jpg");
+	
+	srvContainer.push_back(texSRV);
+	srvContainer.push_back(texSRV1);
+	srvContainer.push_back(nMapSRV);
+	srvContainer.push_back(dMapSRV);
+	srvContainer.push_back(skySRV);
 
-	// Create Game Objects -> Params(Mesh, Material)
-	cube = new GameObject(_cube, _cubeMaterial);
-	cube2 = new GameObject(_cube2, _cubeMaterial2);
+	GameObject* cube = new GameObject(_cube, _cubeMaterial);
+	gameObjects.push_back(cube);
+	GameObject* cube2 = new GameObject(_cube2, _cubeMaterial2);
+	gameObjects.push_back(cube2);
 
 	cube->SetXPosition(-2);
 
+
+	GameObject* skyBoxCube = new GameObject(sbCube, skyBoxMaterial);
+	_skybox = new SkyBox(skyBoxCube);
 	//  Initialize Lights
 
-	//Directional Light
+	//Directional Light 
 	directionLight.AmbientColor = XMFLOAT4(1, 0, 0, 0.0);
 	directionLight.DiffuseColor = XMFLOAT4(0, 1, 0, 0);
 	directionLight.Direction = XMFLOAT3(0, 0, -1);
@@ -137,6 +167,7 @@ bool MyDemoGame::Init()
 	pixelShader->SetData("directionLight", &directionLight, sizeof(directionLight));
 	normalMappingPS->SetData("directionLight", &directionLight, sizeof(directionLight));
 	parallaxPS->SetData("directionLight", &directionLight, sizeof(directionLight));
+	parallaxVS->SetFloat3("dLightPos", directionLight.Direction);
 	
 	//Point Light
 	pointLight.PointLightColor = XMFLOAT4(0, 1, 0, 0);
@@ -146,6 +177,7 @@ bool MyDemoGame::Init()
 	normalMappingPS->SetData("pointLight", &pointLight, sizeof(pointLight));
 	parallaxPS->SetData("pointLight", &pointLight, sizeof(pointLight));
 	parallaxVS->SetFloat3("lightPos", pointLight.Position);
+
 	// Specular Light
 	specularLight.SpecularStrength = 0.5f;
 	specularLight.SpecularColor = XMFLOAT4(1, 0, 0, 1);
@@ -181,6 +213,34 @@ void MyDemoGame::LoadShaders()
 
 	parallaxPS = new SimplePixelShader(device, deviceContext);
 	parallaxPS->LoadShaderFile(L"ParallaxMapping.cso");
+
+	skyVS = new SimpleVertexShader(device, deviceContext);
+	skyVS->LoadShaderFile(L"SkyVS.cso");
+
+	skyPS = new SimplePixelShader(device, deviceContext);
+	skyPS->LoadShaderFile(L"SkyPS.cso");
+
+	D3D11_SAMPLER_DESC samplerDesc = {};
+	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+	device->CreateSamplerState(&samplerDesc, &samplerState);
+
+	// Create the rasterizer state for the sky
+	D3D11_RASTERIZER_DESC rsDesc = {};
+	rsDesc.FillMode = D3D11_FILL_SOLID;
+	rsDesc.CullMode = D3D11_CULL_FRONT;
+	rsDesc.DepthClipEnable = true;
+	device->CreateRasterizerState(&rsDesc, &rasState);
+
+	// Create the depth stencil state for the sky
+	D3D11_DEPTH_STENCIL_DESC dsDesc = {};
+	dsDesc.DepthEnable = true;
+	dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+	dsDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
+	device->CreateDepthStencilState(&dsDesc, &depthState);
 }
 
 
@@ -191,8 +251,10 @@ void MyDemoGame::CreateGeometry()
 {
 	// Create some temporary variables to represent colors
 	// - Not necessary, just makes things more readable
+
 	_cube = new Mesh(device, "cube.obj");
 	_cube2 = new Mesh(device, "cube.obj");
+	sbCube = new Mesh(device, "cube.obj");
 }
 
 
@@ -308,20 +370,30 @@ void MyDemoGame::DrawScene(float deltaTime, float totalTime)
 		D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL,
 		1.0f,
 		0);
+	//Imgui code 
 
-	cube->PrepareMaterial(myCamera->GetviewMatrix(), myCamera->GetProjectionMatrix());
-	cube->Draw(deviceContext);
-	cube2->PrepareMaterial(myCamera->GetviewMatrix(), myCamera->GetProjectionMatrix());
-	cube2->Draw(deviceContext);
-
-	//pixelShader->SetData("cameraPosition", &myCamera->camPosition, sizeof(myCamera->camPosition));
 	pixelShader->SetFloat3("cameraPosition", myCamera->camPosition);
 	parallaxPS->SetFloat3("cameraPosition", myCamera->camPosition);
 	parallaxVS->SetFloat3("viewPos", myCamera->camPosition);
-	//Imgui code 
+
+	////
+	std::vector<GameObject*>::iterator it;
+	for (it = gameObjects.begin(); it != gameObjects.end(); ++it) {
+		(*it)->PrepareMaterial(myCamera->GetviewMatrix(), myCamera->GetProjectionMatrix());
+		(*it)->Draw(deviceContext);
+	}
+	
+	_skybox->skyBox->PrepareMaterial(myCamera->GetviewMatrix(), myCamera->GetProjectionMatrix());
+	_skybox->Draw(deviceContext);
+
 	ImGui_ImplDX11_NewFrame();
 	ImGui::Text("Hello, world!");
 	ImGui::Render();
+
+	deviceContext->RSSetState(0);
+	deviceContext->OMSetDepthStencilState(0, 0);
+
+
 	HR(swapChain->Present(0, 0));
 }
 

@@ -1,14 +1,15 @@
 Texture2D diffuseTexture	: register(t0);
 Texture2D normalMap			:register(t1);
 Texture2D depthMap			:register(t2);
-SamplerState basicSampler	: register(s0);
+SamplerState trillinear	: register(s0);
 
 struct VertexToPixel
 {
-	float4 position			: SV_POSITION;
-	float2 uv				: TEXCOORD1;
-	float3 normal			: NORMAL;
+	float4 position		: SV_POSITION;
+	float2 uv           : TEXCOORD1;
+	float3 normal       : NORMAL;
 	float3 TangentPLightPos	: TEXCOORD2;
+	float3 TangentDLightPos	: TEXCOORD5;
     float3 TangentViewPos	: TEXCOORD3;
     float3 TangentFragPos	: TEXCOORD4;
 };
@@ -37,6 +38,7 @@ cbuffer externalData : register(b0)
 float4 CalculateDirectionalLight(float3 normal, DirectionalLight light, float3 tangentLightPos) {
 	
 	float3 output;
+
 	normal = normalize(normal);
 	float NdotL = saturate(dot(normal, tangentLightPos));
 	output = light.DiffuseColor * NdotL;
@@ -65,7 +67,7 @@ float SpecLight(float3 normal, float3 camDir, float3 lightTowardsPLight, float s
 }
 float2 ParallaxMapping(float2 texCoords, float3 viewDir){
 
-	float height =  depthMap.Sample(basicSampler,texCoords).r;    
+	float height =  depthMap.Sample(trillinear,texCoords).r;    
     float2 p = viewDir.xy / viewDir.z * (height * 0.1f);
     return texCoords - p;   
 }
@@ -76,7 +78,7 @@ float4 main(VertexToPixel input) : SV_TARGET
 	float2 texCoords =  ParallaxMapping(input.uv,viewDir);
 	if(texCoords.x > 1.0 || texCoords.y > 1.0 || texCoords.x < 0.0 || texCoords.y < 0.0)
     discard;
-	float3 normalFromMap = normalMap.Sample(basicSampler, texCoords).rgb;
+	float3 normalFromMap = normalMap.Sample(trillinear, texCoords).rgb;
 	normalFromMap = normalFromMap * 2 - 1;	// Normal unpacking
 	input.normal = normalFromMap;
 
@@ -84,10 +86,10 @@ float4 main(VertexToPixel input) : SV_TARGET
 	//float dist = distance(input.TangentPLightPos,input.TangentFragPos);
 	float3 dirTowardsPointLight = normalize(input.TangentPLightPos - input.TangentFragPos);
 	float3 dirTowardsCamera = normalize(input.TangentViewPos - input.TangentFragPos);
-	float3 surfaceColor = diffuseTexture.Sample(basicSampler, texCoords).rgb;
+	float3 surfaceColor = diffuseTexture.Sample(trillinear, texCoords).rgb;
 	
 	output =
-	pointLight.PointLightColor * CalculatePointLight(input.normal, dirTowardsPointLight, dist);	// PointLight
-	//+ CalculateDirectionalLight(input.normal, directionLight, directionLight.Direction);										// DirectionalLight
-	return float4(output, 1) *float4(surfaceColor,1); //+ float4(SpecLight(normalFromMap, dirTowardsCamera, dirTowardsPointLight, specularLight.SpecularStrength).xxx, 1);
+	pointLight.PointLightColor * CalculatePointLight(input.normal, dirTowardsPointLight, dist)// PointLight
+	+ CalculateDirectionalLight(input.normal, directionLight, input.TangentDLightPos);										// DirectionalLight
+	return float4(output, 1) *float4(surfaceColor,1) ;//+ float4(SpecLight(normalFromMap, dirTowardsCamera, dirTowardsPointLight, specularLight.SpecularStrength).xxx, 1);
 }
