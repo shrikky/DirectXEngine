@@ -6,11 +6,14 @@
 #include "Mesh.h"
 #include <d3d11.h>
 #include "Material.h"
+#include "imgui_impl_dx11.h"
+
 using namespace DirectX;
 class GameObject
 {
 public:
 	XMFLOAT4X4 worldMatrix;
+	XMFLOAT4X4 modelMatrix;
 	XMFLOAT3 position;
 	XMFLOAT3 rotation;
 	XMFLOAT3 scale;

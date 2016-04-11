@@ -12,6 +12,7 @@ struct DirectionLight
 struct PointLight {
 	XMFLOAT4 PointLightColor;
 	XMFLOAT3 Position;
+	float Strength;
 };
 struct SpecularLight {
 	XMFLOAT4 SpecularColor;

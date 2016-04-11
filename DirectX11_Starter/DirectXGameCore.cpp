@@ -448,8 +448,15 @@ void DirectXGameCore::Quit()
 // our program to hang and Windows would think it was
 // unresponsive.
 // --------------------------------------------------------
+
+extern LRESULT ImGui_ImplDX11_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
 LRESULT DirectXGameCore::ProcessMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
+
+	if (ImGui_ImplDX11_WndProcHandler(hwnd, msg, wParam, lParam))
+	return true;
+
 	switch( msg )
 	{
 	// WM_ACTIVATE is sent when the window is activated or deactivated.

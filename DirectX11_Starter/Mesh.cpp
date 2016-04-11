@@ -5,6 +5,7 @@
 Mesh::Mesh(int vertNum, Vertex* vert, int indNum, unsigned int* indices, ID3D11Device* deviceObj)
 {
 	numOfIndices = indNum;
+	CalculateTangents(&verts[0], verts.size(), &indices[0], numOfIndices);
 	// Create vertexBuffers
 	D3D11_BUFFER_DESC vbd;
 	vbd.Usage = D3D11_USAGE_IMMUTABLE;
@@ -144,6 +145,7 @@ Mesh::Mesh(ID3D11Device* deviceObj, char* filename) {
 	obj.close();
 
 	numOfIndices = indices.size();
+	CalculateTangents(&verts[0], verts.size(), &indices[0], numOfIndices);
 	// Create vertexBuffers
 	D3D11_BUFFER_DESC vbd;
 	vbd.Usage = D3D11_USAGE_IMMUTABLE;
@@ -172,7 +174,7 @@ Mesh::Mesh(ID3D11Device* deviceObj, char* filename) {
 	// Create Index Buffer with the data.
 	HR(deviceObj->CreateBuffer(&ibd, &indData, &iBuffer));
 
-	//CalculateTangents(&verts[0], verts.size(), &indices[0], numOfIndices);
+
 }
 Mesh::~Mesh()
 {

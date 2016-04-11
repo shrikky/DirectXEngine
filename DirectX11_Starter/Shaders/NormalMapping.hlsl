@@ -1,7 +1,7 @@
 
 Texture2D diffuseTexture	: register(t0);
 Texture2D normalMap			:register(t1);
-SamplerState basicSampler	: register(s0);
+SamplerState trillinear	: register(s0);
 
 struct VertexToPixel
 {
@@ -20,6 +20,7 @@ struct DirectionalLight {
 struct PointLight {
 	float4 PointLightColor;		// 7
 	float3 Position;			// 3
+	float  Strength;
 };
 struct SpecularLight {
 	float4 SpecularColor;		// 4			
@@ -49,6 +50,7 @@ float CalculatePointLight(float3 normal, float3 direction, float dist) {
 	float point_NdotL;
 	normal = normalize(normal);
 	point_NdotL = saturate(dot(normal, direction));
+	point_NdotL = mul(point_NdotL, pointLight.Strength);
 	return point_NdotL;
 
 }
@@ -70,12 +72,12 @@ float SpecLight(float3 normal, float3 camDir, float3 lightTowardsPLight, float s
 }
 float3 CalculateNormalMap(VertexToPixel input) {
 	input.tangent = normalize(input.tangent);
-	float3 normalFromMap = normalMap.Sample(basicSampler, input.uv).rgb;
-	normalFromMap = normalFromMap * 2 - 1;
+	float3 normalFromMap = normalMap.Sample(trillinear, input.uv).rgb;
+	normalFromMap = normalFromMap * 2 - 1;	// Normal unpacking
 
 	// Calculate the TBN matrix to go from tangent-space to world-space
 	float3 N = input.normal;
-	float3 T = normalize(input.tangent - N * dot(input.tangent, N));
+	float3 T = normalize(input.tangent - N * dot(input.tangent, N));		// This is improvement code, we can also use T = normalize(input.tangent)
 	float3 B = cross(T, N);
 	float3x3 TBN = float3x3(T, B, N);
 	input.normal = normalize(mul(normalFromMap, TBN));
@@ -89,11 +91,9 @@ float4 main(VertexToPixel input) : SV_TARGET
 	float dist = distance(pointLight.Position,input.worldPos);
 	float3 dirTowardsPointLight = normalize(pointLight.Position - input.worldPos);
 	float3 dirTowardsCamera = normalize(cameraPosition - input.worldPos);
-	float4 surfaceColor = diffuseTexture.Sample(basicSampler, input.uv);
+	float4 surfaceColor = diffuseTexture.Sample(trillinear, input.uv);
 
-	output =
-	
-	pointLight.PointLightColor * CalculatePointLight(input.normal, dirTowardsPointLight, dist) +	// PointLight
+	output =	pointLight.PointLightColor * CalculatePointLight(input.normal, dirTowardsPointLight, dist)+	// PointLight
 	CalculateDirectionalLight(input.normal, directionLight);										// DirectionalLight
 	return float4(output, 1) *surfaceColor + float4(SpecLight(input.normal, dirTowardsCamera, dirTowardsPointLight, specularLight.SpecularStrength).xxx, 1);
 }

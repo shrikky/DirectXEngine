@@ -23,7 +23,9 @@
 
 #include "MyDemoGame.h"
 #include "Vertex.h"
-#include <iostream>?
+#include <iostream>
+#include "DDSTextureLoader.h"
+
 // For the DirectX Math library
 using namespace DirectX;
 
@@ -88,6 +90,22 @@ MyDemoGame::~MyDemoGame()
 	// Delete our simple shaders
 	delete vertexShader;
 	delete pixelShader;
+	delete parallaxVS;
+	delete parallaxPS;
+	delete skyVS;
+	delete skyPS;
+	delete normalMappingPS;
+	ImGui_ImplDX11_Shutdown();
+	
+
+	std::vector<GameObject*>::iterator it;
+	for (it = gameObjects.begin(); it != gameObjects.end(); ++it) {
+		delete (*it);
+	}
+	std::vector<ID3D11ShaderResourceView*>::iterator it1;
+	for (it1 = srvContainer.begin(); it1 != srvContainer.end(); ++it1) {
+		(*it1)->Release();
+	}
 }
 
 #pragma endregion
@@ -117,32 +135,60 @@ bool MyDemoGame::Init()
 	// geometric primitives we'll be using and how to interpret them
 	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
+	//Create Materials
+	skyBoxMaterial = new Material(&skyVS, &skyPS);
+	skyBoxMaterial->Skybox(&skyVS, &skyPS, &device, &deviceContext, &samplerState, &skySRV, &rasState, &depthState, L"SunnyCubeMap.dds");
+	_cubeMaterial = new Material(&vertexShader, &normalMappingPS, &device, &deviceContext, &samplerState, &texSRV, L"bricks2.jpg");
+	_cubeMaterial2 = new Material(&parallaxVS, &parallaxPS, &device, &deviceContext, &samplerState, &texSRV1,L"bricks2.jpg", &nMapSRV, L"bricks2_normal.jpg",&dMapSRV,L"bricks2_disp.jpg");
 	// Create Material -> Params (Vertexshader, Pixel shader)
-	_cubeMaterial = new Material(vertexShader, pixelShader, device, deviceContext, L"brickwall.jpg");
-	_cubeMaterial2 = new Material(vertexShader, normalMappingShader, device, deviceContext, L"brickwall.jpg",L"brickwall_normal.jpg");
+	
+	srvContainer.push_back(texSRV);
+	srvContainer.push_back(texSRV1);
+	srvContainer.push_back(nMapSRV);
+	srvContainer.push_back(dMapSRV);
+	srvContainer.push_back(skySRV);
 
-	// Create Game Objects -> Params(Mesh, Material)
-	cube2 = new GameObject(_cube2, _cubeMaterial2);
-	cube = new GameObject(_cube, _cubeMaterial);
+	GameObject* cube = new GameObject(_cube, _cubeMaterial);
+	gameObjects.push_back(cube);
+	GameObject* cube2 = new GameObject(_cube2, _cubeMaterial2);
+	gameObjects.push_back(cube2);
+
 	cube->SetXPosition(-2);
 
+
+	GameObject* skyBoxCube = new GameObject(sbCube, skyBoxMaterial);
+	_skybox = new SkyBox(skyBoxCube);
 	//  Initialize Lights
-	directionLight.AmbientColor = XMFLOAT4(0, 0, 0, 0.0);
-	directionLight.DiffuseColor = XMFLOAT4(1, 1, 1, 1);
-	directionLight.Direction = XMFLOAT3(-3, -1, -2);
+
+	//Directional Light 
+	directionLight.AmbientColor = XMFLOAT4(1, 0, 0, 0.0);
+	directionLight.DiffuseColor = XMFLOAT4(0, 1, 0, 0);
+	directionLight.Direction = XMFLOAT3(0, 0, -1);
 
 	pixelShader->SetData("directionLight", &directionLight, sizeof(directionLight));
-	normalMappingShader->SetData("directionLight", &directionLight, sizeof(directionLight));
-
-	pointLight.PointLightColor = XMFLOAT4(0, 0, 1, 0);
-	pointLight.Position = XMFLOAT3(1, 0, -1);
+	normalMappingPS->SetData("directionLight", &directionLight, sizeof(directionLight));
+	parallaxPS->SetData("directionLight", &directionLight, sizeof(directionLight));
+	parallaxVS->SetFloat3("dLightPos", directionLight.Direction);
+	
+	//Point Light
+	pointLight.PointLightColor = XMFLOAT4(0, 1, 0, 0);
+	pointLight.Position = XMFLOAT3(0, 0, -2);
+	pointLight.Strength = 1;
 	pixelShader->SetData("pointLight", &pointLight, sizeof(pointLight));
-	normalMappingShader->SetData("directionLight", &directionLight, sizeof(directionLight));
+	normalMappingPS->SetData("pointLight", &pointLight, sizeof(pointLight));
+	parallaxPS->SetData("pointLight", &pointLight, sizeof(pointLight));
+	parallaxVS->SetFloat3("lightPos", pointLight.Position);
 
+	// Specular Light
 	specularLight.SpecularStrength = 0.5f;
-	specularLight.SpecularColor = XMFLOAT4(0, 1, 0,1);
+	specularLight.SpecularColor = XMFLOAT4(1, 0, 0, 1);
 	pixelShader->SetData("specularLight", &specularLight, sizeof(specularLight));
-	normalMappingShader->SetData("directionLight", &directionLight, sizeof(directionLight));
+	normalMappingPS->SetData("specularLight", &specularLight, sizeof(specularLight));
+	parallaxPS->SetData("specularLight", &specularLight, sizeof(specularLight));
+
+	//Gui initialization
+	ImGui_ImplDX11_Init(hMainWnd, device, deviceContext);
+
 	return true;
 }
 
@@ -160,8 +206,42 @@ void MyDemoGame::LoadShaders()
 	pixelShader = new SimplePixelShader(device, deviceContext);
 	pixelShader->LoadShaderFile(L"PixelShader.cso");
 
-	normalMappingShader = new SimplePixelShader(device, deviceContext);
-	normalMappingShader->LoadShaderFile(L"NormalMapping.cso");
+	normalMappingPS = new SimplePixelShader(device, deviceContext);
+	normalMappingPS->LoadShaderFile(L"NormalMapping.cso");
+
+	parallaxVS = new SimpleVertexShader(device, deviceContext);
+	parallaxVS->LoadShaderFile(L"ParallaxVertexShader.cso");
+
+	parallaxPS = new SimplePixelShader(device, deviceContext);
+	parallaxPS->LoadShaderFile(L"ParallaxMapping.cso");
+
+	skyVS = new SimpleVertexShader(device, deviceContext);
+	skyVS->LoadShaderFile(L"SkyVS.cso");
+
+	skyPS = new SimplePixelShader(device, deviceContext);
+	skyPS->LoadShaderFile(L"SkyPS.cso");
+
+	D3D11_SAMPLER_DESC samplerDesc = {};
+	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+	device->CreateSamplerState(&samplerDesc, &samplerState);
+
+	// Create the rasterizer state for the sky
+	D3D11_RASTERIZER_DESC rsDesc = {};
+	rsDesc.FillMode = D3D11_FILL_SOLID;
+	rsDesc.CullMode = D3D11_CULL_FRONT;
+	rsDesc.DepthClipEnable = true;
+	device->CreateRasterizerState(&rsDesc, &rasState);
+
+	// Create the depth stencil state for the sky
+	D3D11_DEPTH_STENCIL_DESC dsDesc = {};
+	dsDesc.DepthEnable = true;
+	dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+	dsDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
+	device->CreateDepthStencilState(&dsDesc, &depthState);
 }
 
 
@@ -172,8 +252,10 @@ void MyDemoGame::CreateGeometry()
 {
 	// Create some temporary variables to represent colors
 	// - Not necessary, just makes things more readable
+
 	_cube = new Mesh(device, "cube.obj");
 	_cube2 = new Mesh(device, "cube.obj");
+	sbCube = new Mesh(device, "cube.obj");
 }
 
 
@@ -266,6 +348,8 @@ void MyDemoGame::UpdateScene(float deltaTime, float totalTime)
 	myCamera->Update();
 	viewMatrix = myCamera->GetviewMatrix();
 	
+	
+	
 }
 
 // --------------------------------------------------------
@@ -273,6 +357,8 @@ void MyDemoGame::UpdateScene(float deltaTime, float totalTime)
 // --------------------------------------------------------
 void MyDemoGame::DrawScene(float deltaTime, float totalTime)
 {
+
+	
 	// Background color (Cornflower Blue in this case) for clearing
 	const float color[4] = {0.4f, 0.6f, 0.75f, 0.0f};
 
@@ -285,14 +371,61 @@ void MyDemoGame::DrawScene(float deltaTime, float totalTime)
 		D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL,
 		1.0f,
 		0);
+	 
 
-	cube->PrepareMaterial(myCamera->GetviewMatrix(), myCamera->GetProjectionMatrix());
-	cube->Draw(deviceContext);
-	cube2->PrepareMaterial(myCamera->GetviewMatrix(), myCamera->GetProjectionMatrix());
-	cube2->Draw(deviceContext);
-
-	//pixelShader->SetData("cameraPosition", &myCamera->camPosition, sizeof(myCamera->camPosition));
 	pixelShader->SetFloat3("cameraPosition", myCamera->camPosition);
+	parallaxPS->SetFloat3("cameraPosition", myCamera->camPosition);
+	parallaxVS->SetFloat3("viewPos", myCamera->camPosition);
+
+	////
+	std::vector<GameObject*>::iterator it;
+	for (it = gameObjects.begin(); it != gameObjects.end(); ++it) {
+		(*it)->PrepareMaterial(myCamera->GetviewMatrix(), myCamera->GetProjectionMatrix());
+		(*it)->Draw(deviceContext);
+	}
+	
+	_skybox->skyBox->PrepareMaterial(myCamera->GetviewMatrix(), myCamera->GetProjectionMatrix());
+	_skybox->Draw(deviceContext);
+
+	//Imgui code
+	ImGui_ImplDX11_NewFrame();
+
+	ImGui::Begin("Fancy GGP Game Engine");
+	ImGui::Text("GUI Frame Work");
+	ImGui::SliderFloat("R", &r, 0.0f, 1.0f);
+	ImGui::SliderFloat("G", &g, 0.0f, 1.0f);
+	ImGui::SliderFloat("B", &b, 0.0f, 1.0f);
+	ImGui::ColorEdit3("color value", (float*)&clear_col);
+	if (ImGui::Button("Example Window"))
+		show_test_window ^= 1;
+	if (ImGui::Button("Next Window"))
+		show_another_window ^= 1;
+	ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+	ImGui::End();
+
+	// another sample window
+	if (show_another_window)
+	{
+		ImGui::SetNextWindowSize(ImVec2(200, 100), ImGuiSetCond_FirstUseEver);
+		ImGui::Begin("Hello world Window", &show_another_window);
+		ImGui::Text("Hello");
+		ImGui::End();
+	}
+
+	// Shows Test Window
+	if (show_test_window)
+	{
+		ImGui::SetNextWindowPos(ImVec2(650, 20), ImGuiSetCond_FirstUseEver);     // Normally user code doesn't need/want to call it because positions are saved in .ini file anyway. Here we just want to make the demo initial state a bit more friendly!
+		ImGui::ShowTestWindow(&show_test_window);
+	}
+	ImGui::Render();
+	//end of gui code
+
+
+	deviceContext->RSSetState(0);
+	deviceContext->OMSetDepthStencilState(0, 0);
+
+
 	HR(swapChain->Present(0, 0));
 }
 
