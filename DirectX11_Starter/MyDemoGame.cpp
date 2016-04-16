@@ -24,6 +24,7 @@
 #include "MyDemoGame.h"
 #include "Vertex.h"
 #include <iostream>
+#include "vld.h"
 #include "DDSTextureLoader.h"
 
 // For the DirectX Math library
@@ -95,16 +96,33 @@ MyDemoGame::~MyDemoGame()
 	delete skyVS;
 	delete skyPS;
 	delete normalMappingPS;
+
+	delete skyBoxMaterial;
+	delete _cubeMaterial;
+	delete _cubeMaterial2;
+
+	delete myCamera;
+	samplerState->Release();
+	rasState->Release();
+	depthState->Release();
+
 	ImGui_ImplDX11_Shutdown();
 	
+	delete _skybox;
+	delete skyBoxCube;
 
 	std::vector<GameObject*>::iterator it;
 	for (it = gameObjects.begin(); it != gameObjects.end(); ++it) {
 		delete (*it);
 	}
+
 	std::vector<ID3D11ShaderResourceView*>::iterator it1;
 	for (it1 = srvContainer.begin(); it1 != srvContainer.end(); ++it1) {
 		(*it1)->Release();
+	}
+	std::vector<Mesh*>::iterator it2;
+	for (it2 = meshes.begin(); it2 != meshes.end(); ++it2) {
+		delete (*it2);
 	}
 }
 
@@ -156,7 +174,7 @@ bool MyDemoGame::Init()
 	cube->SetXPosition(-2);
 
 
-	GameObject* skyBoxCube = new GameObject(sbCube, skyBoxMaterial);
+	skyBoxCube = new GameObject(sbCube, skyBoxMaterial);
 	_skybox = new SkyBox(skyBoxCube);
 	//  Initialize Lights
 
@@ -254,8 +272,11 @@ void MyDemoGame::CreateGeometry()
 	// - Not necessary, just makes things more readable
 
 	_cube = new Mesh(device, "cube.obj");
+	meshes.push_back(_cube);
 	_cube2 = new Mesh(device, "cube.obj");
+	meshes.push_back(_cube2);
 	sbCube = new Mesh(device, "cube.obj");
+	meshes.push_back(sbCube);
 }
 
 
