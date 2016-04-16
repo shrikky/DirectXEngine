@@ -9,9 +9,6 @@ GameObject::GameObject(Mesh *mesh, Material* material)
 	rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	scale = XMFLOAT3(1.0f, 1.0f, 1.0f);
 	gameObjectmaterial = material;
-
-	//InitializeRigidBody();
-
 	SetWorldMatrix();
 }
 
@@ -65,26 +62,4 @@ void GameObject::PrepareMaterial(XMFLOAT4X4 view, XMFLOAT4X4 proj) {
 
 void GameObject::MoveForward() {
 
-}
-
-void GameObject::InitializeRigidBody() {
-	//create a dynamic rigidbody
-
-	colShape = new btSphereShape(btScalar(1.0));
-	collisionShapes.push_back(colShape);
-
-	/// Create Dynamic Objects
-	startTransform.setIdentity();
-
-	mass = 1.0f;
-
-	localInertia = btVector3(0, 0, 0);
-	colShape->calculateLocalInertia(mass, localInertia);
-
-	startTransform.setOrigin(btVector3(2, 10, 0));
-
-	//using motionstate is recommended, it provides interpolation capabilities, and only synchronizes 'active' objects
-	myMotionState = new btDefaultMotionState(startTransform);
-	btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, myMotionState, colShape, localInertia);
-	body = new btRigidBody(rbInfo);
 }

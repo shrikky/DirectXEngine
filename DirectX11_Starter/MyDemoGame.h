@@ -14,7 +14,6 @@
 #include <d3d11.h>
 #include <vector>
 #include "SkyBox.h"
-#include "btBulletDynamicsCommon.h"
 // Include run-time memory checking in debug builds, so 
 // we can be notified of memory leaks
 #if defined(DEBUG) || defined(_DEBUG)
@@ -49,7 +48,6 @@ private:
 	void LoadShaders(); 
 	void CreateGeometry();
 	void CreateMatrices();
-	void LoadDynamicsWorld();
 
 
 	// Wrappers for DirectX shaders to provide simplified functionality
