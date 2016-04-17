@@ -7,6 +7,7 @@
 #include <d3d11.h>
 #include "Material.h"
 #include "imgui_impl_dx11.h"
+#include "btBulletDynamicsCommon.h"
 
 using namespace DirectX;
 class GameObject
@@ -70,6 +71,25 @@ public:
 	void PrepareMaterial(XMFLOAT4X4 view, XMFLOAT4X4 proj);
 	GameObject(Mesh* mesh, Material* material);
 	~GameObject();
+
+	//create a dynamic rigidbody
+	btAlignedObjectArray<btCollisionShape*> collisionShapes;
+
+	btCollisionShape* colShape;
+
+	/// Create Dynamic Objects
+	btTransform startTransform;
+
+	float mass;
+
+	btVector3 localInertia;
+
+	//using motionstate is recommended, it provides interpolation capabilities, and only synchronizes 'active' objects
+	btDefaultMotionState* myMotionState;
+	btRigidBody* body;
+
+	void InitializeRigidBody();
+
 private:
 
 
