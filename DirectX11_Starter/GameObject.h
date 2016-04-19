@@ -59,8 +59,13 @@ public:
 		rotation.y = y;
 		SetWorldMatrix();
 	}
-	void SetScale(XMFLOAT3 scale) {
-		 position = scale;
+	void SetScale(XMFLOAT3 Scale) {
+		scale = Scale;
+	}
+
+	Mesh* getMesh() {
+		return gameObjectMesh;
+
 	}
 
 	void Move();

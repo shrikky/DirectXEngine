@@ -74,6 +74,8 @@ MyDemoGame::MyDemoGame(HINSTANCE hInstance)
 	// Custom window size - will be created by Init() later
 	windowWidth = 1280;
 	windowHeight = 720;
+	shadowMapSize = 2048;
+
 }
 
 // --------------------------------------------------------
@@ -96,6 +98,7 @@ MyDemoGame::~MyDemoGame()
 	delete skyPS;
 	delete normalMappingPS;
 	ImGui_ImplDX11_Shutdown();
+	delete shadowVS;
 	
 
 	std::vector<GameObject*>::iterator it;
@@ -106,6 +109,10 @@ MyDemoGame::~MyDemoGame()
 	for (it1 = srvContainer.begin(); it1 != srvContainer.end(); ++it1) {
 		(*it1)->Release();
 	}
+	shadowDSV->Release();
+	shadowSRV->Release();
+	shadowRS->Release();
+	shadowSampler->Release();
 }
 
 #pragma endregion
@@ -155,6 +162,11 @@ bool MyDemoGame::Init()
 
 	cube->SetXPosition(-2);
 
+	GameObject* cube3 = new GameObject(_cube, _cubeMaterial);
+	gameObjects.push_back(cube3);
+	cube3->SetScale(XMFLOAT3(10, 1, 10));
+	cube3->SetYPosition(-3);
+	//cube3->SetZPosition(-3);
 
 	GameObject* skyBoxCube = new GameObject(sbCube, skyBoxMaterial);
 	_skybox = new SkyBox(skyBoxCube);
@@ -221,6 +233,9 @@ void MyDemoGame::LoadShaders()
 	skyPS = new SimplePixelShader(device, deviceContext);
 	skyPS->LoadShaderFile(L"SkyPS.cso");
 
+	shadowVS = new SimpleVertexShader(device, deviceContext);
+	shadowVS->LoadShaderFile(L"ShadowVS.cso");
+
 	D3D11_SAMPLER_DESC samplerDesc = {};
 	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
 	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -242,6 +257,67 @@ void MyDemoGame::LoadShaders()
 	dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
 	dsDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
 	device->CreateDepthStencilState(&dsDesc, &depthState);
+
+	//SHADOW BLOCK _______________________________________________
+	D3D11_TEXTURE2D_DESC shadowMapDesc;
+	shadowMapDesc.Width = shadowMapSize;
+	shadowMapDesc.Height = shadowMapSize;
+	shadowMapDesc.ArraySize = 1;
+	shadowMapDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
+	shadowMapDesc.CPUAccessFlags = 0;
+	shadowMapDesc.Format = DXGI_FORMAT_R32_TYPELESS;
+	shadowMapDesc.MipLevels = 1;
+	shadowMapDesc.MiscFlags = 0;
+	shadowMapDesc.SampleDesc.Count = 1;
+	shadowMapDesc.SampleDesc.Quality = 0;
+	shadowMapDesc.Usage = D3D11_USAGE_DEFAULT;
+	ID3D11Texture2D* shadowTexture;
+	device->CreateTexture2D(&shadowMapDesc, 0, &shadowTexture);
+
+	// Create the depth/stencil view for the shadow map
+	D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
+	dsvDesc.Flags = 0;
+	dsvDesc.Format = DXGI_FORMAT_D32_FLOAT;
+	dsvDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+	dsvDesc.Texture2D.MipSlice = 0;
+	device->CreateDepthStencilView(shadowTexture, &dsvDesc, &shadowDSV);
+
+	// Create the SRV for the shadow map
+	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+	srvDesc.Format = DXGI_FORMAT_R32_FLOAT;
+	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	srvDesc.Texture2D.MipLevels = 1;
+	srvDesc.Texture2D.MostDetailedMip = 0;
+	device->CreateShaderResourceView(shadowTexture, &srvDesc, &shadowSRV);
+
+	// Done with this texture ref
+	shadowTexture->Release();
+
+	// Create a better sampler specifically for the shadow map
+	D3D11_SAMPLER_DESC sampDesc = {};
+	sampDesc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR;
+	sampDesc.ComparisonFunc = D3D11_COMPARISON_LESS;
+	sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
+	sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
+	sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
+	sampDesc.BorderColor[0] = 1.0f;
+	sampDesc.BorderColor[1] = 1.0f;
+	sampDesc.BorderColor[2] = 1.0f;
+	sampDesc.BorderColor[3] = 1.0f;
+	device->CreateSamplerState(&sampDesc, &shadowSampler);
+
+	// Create a rasterizer for the shadow creation stage (to apply a bias for us)
+	D3D11_RASTERIZER_DESC shRastDesc = {};
+	shRastDesc.FillMode = D3D11_FILL_SOLID;
+	shRastDesc.CullMode = D3D11_CULL_BACK;
+	shRastDesc.FrontCounterClockwise = false;
+	shRastDesc.DepthClipEnable = true;
+	shRastDesc.DepthBias = 1000; // Not world units - this gets multiplied by the "smallest possible value > 0 in depth buffer"
+	shRastDesc.DepthBiasClamp = 0.0f;
+	shRastDesc.SlopeScaledDepthBias = 1.0f;
+	device->CreateRasterizerState(&shRastDesc, &shadowRS);
+
+	//SHADOW BLOCK _______________________________________________
 }
 
 
@@ -288,6 +364,20 @@ void MyDemoGame::CreateMatrices()
 	XMStoreFloat4x4(&viewMatrix, XMMatrixTranspose(V)); // Transpose for HLSL!
 
 	myCamera->OnResize(aspectRatio);
+
+	XMMATRIX shView = XMMatrixLookToLH(
+		XMVectorSet(0, 20, -20, 0),
+		XMVectorSet(0, -1, 1, 0),
+		XMVectorSet(0, 1, 0, 0));
+	XMStoreFloat4x4(&shadowView, XMMatrixTranspose(shView));
+
+	XMMATRIX shProj = XMMatrixOrthographicLH(
+		10.0f,		// Width in world units
+		10.0f,		// Height in world units
+		0.1f,		// Near plane distance
+		100.0f);	// Far plane distance
+	XMStoreFloat4x4(&shadowProj, XMMatrixTranspose(shProj));
+
 }
 
 #pragma endregion
@@ -362,6 +452,8 @@ void MyDemoGame::DrawScene(float deltaTime, float totalTime)
 	// Background color (Cornflower Blue in this case) for clearing
 	const float color[4] = {0.4f, 0.6f, 0.75f, 0.0f};
 
+	RenderShadowMap();
+
 	// Clear the render target and depth buffer (erases what's on the screen)
 	//  - Do this ONCE PER FRAME
 	//  - At the beginning of DrawScene (before drawing *anything*)
@@ -379,11 +471,26 @@ void MyDemoGame::DrawScene(float deltaTime, float totalTime)
 
 	////
 	std::vector<GameObject*>::iterator it;
+	int temp = 0;
 	for (it = gameObjects.begin(); it != gameObjects.end(); ++it) {
+		GameObject* ge = gameObjects.at(temp);
+		vertexShader->SetMatrix4x4("world", ge->GetWorldMatrix());
+		vertexShader->SetMatrix4x4("view", myCamera->GetviewMatrix());
+		vertexShader->SetMatrix4x4("projection", myCamera->GetProjectionMatrix());
+		vertexShader->SetMatrix4x4("shadowView", shadowView);
+		vertexShader->SetMatrix4x4("shadowProjection", shadowProj);
+		normalMappingPS->SetShaderResourceView("shadowMap", shadowSRV);
+		normalMappingPS->SetSamplerState("shadowSampler", shadowSampler);
+
 		(*it)->PrepareMaterial(myCamera->GetviewMatrix(), myCamera->GetProjectionMatrix());
 		(*it)->Draw(deviceContext);
+		temp++;
 	}
+
+
 	
+	pixelShader->SetShaderResourceView("shadowMap", 0);
+
 	_skybox->skyBox->PrepareMaterial(myCamera->GetviewMatrix(), myCamera->GetProjectionMatrix());
 	_skybox->Draw(deviceContext);
 
@@ -430,6 +537,58 @@ void MyDemoGame::DrawScene(float deltaTime, float totalTime)
 }
 
 #pragma endregion
+
+void MyDemoGame::RenderShadowMap()
+{
+	// Initial setup
+	deviceContext->OMSetRenderTargets(0, 0, shadowDSV);
+	deviceContext->ClearDepthStencilView(shadowDSV, D3D11_CLEAR_DEPTH, 1.0f, 0);
+	deviceContext->RSSetState(shadowRS);
+
+	// We need a viewport!  This defines how much of the render target to render into
+	D3D11_VIEWPORT shadowVP = viewport;
+	shadowVP.Width = (float)shadowMapSize;
+	shadowVP.Height = (float)shadowMapSize;
+	deviceContext->RSSetViewports(1, &shadowVP);
+
+	// Turn on the correct shaders
+	shadowVS->SetShader(false); // Don't copy any data yet
+	shadowVS->SetMatrix4x4("view", shadowView);
+	shadowVS->SetMatrix4x4("projection", shadowProj);
+	deviceContext->PSSetShader(0, 0, 0); // Turn off the pixel shader
+
+										 // Actually render everything
+	UINT stride = sizeof(Vertex);
+	UINT offset = 0;
+
+	std::vector<GameObject*>::iterator it;
+	int temp = 0;
+	for (it = gameObjects.begin(); it != gameObjects.end(); ++it) {
+
+		GameObject* ge = gameObjects.at(temp);
+		ID3D11Buffer* vb = ge->getMesh()->GetVertexBuffer();
+		ID3D11Buffer* ib = ge->getMesh()->GetIndexBuffer();
+
+		// Set buffers in the input assembler
+		deviceContext->IASetVertexBuffers(0, 1, &vb, &stride, &offset);
+		deviceContext->IASetIndexBuffer(ib, DXGI_FORMAT_R32_UINT, 0);
+
+		shadowVS->SetMatrix4x4("world", ge->GetWorldMatrix());
+
+		// Actually copy the data for this object
+		shadowVS->CopyAllBufferData();
+
+		// Finally do the actual drawing
+		deviceContext->DrawIndexed(ge->getMesh()->GetIndexCount(), 0, 0);
+		temp++;
+	}
+
+	// Revert to original DX state
+	deviceContext->OMSetRenderTargets(1, &renderTargetView, depthStencilView);
+	deviceContext->RSSetViewports(1, &viewport);
+	deviceContext->RSSetState(0);
+}
+
 
 #pragma region Mouse Input
 

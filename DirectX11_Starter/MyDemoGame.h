@@ -50,6 +50,8 @@ private:
 	void CreateMatrices();
 
 
+	void RenderShadowMap();
+
 	// Wrappers for DirectX shaders to provide simplified functionality
 	SimpleVertexShader* vertexShader;
 	SimplePixelShader* pixelShader;
@@ -113,4 +115,14 @@ private:
 	 float r = 1.0f;
 	 float g = 0.0f;
 	 float b = 0.0f;
+
+	 // Shadow map "stuff"
+	 int shadowMapSize;
+	 ID3D11DepthStencilView* shadowDSV;
+	 ID3D11ShaderResourceView* shadowSRV;
+	 ID3D11SamplerState* shadowSampler;
+	 ID3D11RasterizerState* shadowRS;
+	 SimpleVertexShader* shadowVS;
+	 DirectX::XMFLOAT4X4 shadowView;
+	 DirectX::XMFLOAT4X4 shadowProj;
 };
