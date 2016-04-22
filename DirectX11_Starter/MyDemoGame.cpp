@@ -24,7 +24,7 @@
 #include "MyDemoGame.h"
 #include "Vertex.h"
 #include <iostream>
-#include "vld.h"
+//#include "vld.h"
 #include "DDSTextureLoader.h"
 
 // For the DirectX Math library
@@ -156,7 +156,8 @@ bool MyDemoGame::Init()
 	//Create Materials
 	skyBoxMaterial = new Material(&skyVS, &skyPS);
 	skyBoxMaterial->Skybox(&skyVS, &skyPS, &device, &deviceContext, &samplerState, &skySRV, &rasState, &depthState, L"SunnyCubeMap.dds");
-	_cubeMaterial = new Material(&vertexShader, &normalMappingPS, &device, &deviceContext, &samplerState, &texSRV, L"bricks2.jpg");
+	_cubeMaterial = new Material(&vertexShader, &normalMappingPS, &device, &deviceContext, &samplerState, &texSRV, L"orange.jpg"); //if I can find 3 textures of differing qualities
+																																	//they should be put into materials
 	_cubeMaterial2 = new Material(&parallaxVS, &parallaxPS, &device, &deviceContext, &samplerState, &texSRV1,L"bricks2.jpg", &nMapSRV, L"bricks2_normal.jpg",&dMapSRV,L"bricks2_disp.jpg");
 	// Create Material -> Params (Vertexshader, Pixel shader)
 	
