@@ -4,6 +4,8 @@
 
 GameObject::GameObject(Mesh *mesh, Material* material)
 {
+	InitializeRigidBody();
+
 	gameObjectMesh = mesh;
 	position = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
@@ -18,6 +20,7 @@ GameObject::GameObject(Mesh *mesh, Material* material)
 
 GameObject::~GameObject()
 {
+	
 }
 
 void GameObject::Draw(ID3D11DeviceContext* deviceContext) {
@@ -47,6 +50,7 @@ void GameObject::SetWorldMatrix() {
 	XMMATRIX scaleMatrix = XMMatrixScaling(scale.x, scale.y, scale.z);
 	XMMATRIX model = scaleMatrix * rot * trans;
 	XMStoreFloat4x4(&worldMatrix, XMMatrixTranspose(model));	//Setting matrix as transpose
+	
 }
 void GameObject::Move() {
 	position.x = 5.0f;
@@ -81,10 +85,11 @@ void GameObject::InitializeRigidBody() {
 	localInertia = btVector3(0, 0, 0);
 	colShape->calculateLocalInertia(mass, localInertia);
 
-	startTransform.setOrigin(btVector3(2, 10, 0));
+	startTransform.setOrigin(btVector3(position.x, position.y, position.z));
 
 	//using motionstate is recommended, it provides interpolation capabilities, and only synchronizes 'active' objects
 	myMotionState = new btDefaultMotionState(startTransform);
 	btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, myMotionState, colShape, localInertia);
 	body = new btRigidBody(rbInfo);
+
 }

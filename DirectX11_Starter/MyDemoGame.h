@@ -15,6 +15,8 @@
 #include <vector>
 #include "SkyBox.h"
 #include "btBulletDynamicsCommon.h"
+#include <vector>
+
 // Include run-time memory checking in debug builds, so 
 // we can be notified of memory leaks
 #if defined(DEBUG) || defined(_DEBUG)
@@ -33,6 +35,7 @@ public:
 
 	// Overrides for base level methods
 	bool Init();
+	void UpdatePhysicsWorld(float elapsedTime);
 	void OnResize();
 	void UpdateScene(float deltaTime, float totalTime);
 	void DrawScene(float deltaTime, float totalTime);
@@ -41,6 +44,9 @@ public:
 	void OnMouseDown(WPARAM btnState, int x, int y);
 	void OnMouseUp(WPARAM btnState, int x, int y);
 	void OnMouseMove(WPARAM btnState, int x, int y);
+
+
+
 
 private:
 	// Initialization for our "game" demo - Feel free to
@@ -115,4 +121,8 @@ private:
 	 float r = 1.0f;
 	 float g = 0.0f;
 	 float b = 0.0f;
+
+	 Physics * physics;
+
+
 };

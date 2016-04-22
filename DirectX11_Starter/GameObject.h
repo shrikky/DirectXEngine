@@ -9,6 +9,8 @@
 #include "imgui_impl_dx11.h"
 #include "btBulletDynamicsCommon.h"
 
+#include"Physics.h"
+
 using namespace DirectX;
 class GameObject
 {
@@ -56,10 +58,22 @@ public:
 		position = rot;
 	}
 
+	void SetRotationX(float x) {
+		rotation.x = x;
+		SetWorldMatrix();
+	}
+
 	void SetRotationY(float y) {
 		rotation.y = y;
 		SetWorldMatrix();
 	}
+
+
+	void SetRotationZ(float z) {
+		rotation.z = z;
+		SetWorldMatrix();
+	}
+
 	void SetScale(XMFLOAT3 scale) {
 		 position = scale;
 	}
@@ -89,6 +103,7 @@ public:
 	btRigidBody* body;
 
 	void InitializeRigidBody();
+
 
 private:
 

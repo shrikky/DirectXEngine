@@ -25,6 +25,7 @@
 #include "Vertex.h"
 #include <iostream>
 #include "DDSTextureLoader.h"
+#include <DirectXMath.h>
 
 // For the DirectX Math library
 using namespace DirectX;
@@ -95,6 +96,7 @@ MyDemoGame::~MyDemoGame()
 	delete skyVS;
 	delete skyPS;
 	delete normalMappingPS;
+	delete physics;
 	ImGui_ImplDX11_Shutdown();
 	
 
@@ -118,6 +120,9 @@ MyDemoGame::~MyDemoGame()
 // --------------------------------------------------------
 bool MyDemoGame::Init()
 {	// Camera
+
+	LoadDynamicsWorld();
+
 	myCamera = new Camera();
 	// Call the base class's Init() method to create the window,
 	// initialize DirectX, etc.
@@ -130,7 +135,7 @@ bool MyDemoGame::Init()
 	LoadShaders(); 
 	CreateGeometry();
 	CreateMatrices();
-	//LoadDynamicsWorld();
+	LoadDynamicsWorld();
 
 	// Tell the input assembler stage of the pipeline what kind of
 	// geometric primitives we'll be using and how to interpret them
@@ -151,8 +156,13 @@ bool MyDemoGame::Init()
 
 	GameObject* cube = new GameObject(_cube, _cubeMaterial);
 	gameObjects.push_back(cube);
+
+	physics->dynamicsWorld->addRigidBody(cube->body);
+
 	GameObject* cube2 = new GameObject(_cube2, _cubeMaterial2);
 	gameObjects.push_back(cube2);
+
+	physics->dynamicsWorld->addRigidBody(cube2->body);
 
 	cube->SetXPosition(-2);
 
@@ -193,6 +203,37 @@ bool MyDemoGame::Init()
 	return true;
 }
 
+
+//Update physics world in regular intervals
+void MyDemoGame::UpdatePhysicsWorld(float elapsedTime)
+{
+	// fixed 1/60 timestep
+	physics->dynamicsWorld->stepSimulation(elapsedTime, 10);
+
+	XMFLOAT3 mat;
+	const btCollisionObjectArray& objectArray = physics->dynamicsWorld->
+		getCollisionObjectArray();
+
+	for (int i = 0; i < physics->dynamicsWorld->getNumCollisionObjects(); i++)
+	{
+		btRigidBody* pBody = btRigidBody::upcast(objectArray[i]);
+		if (pBody && pBody->getMotionState())
+		{
+			btTransform trans;
+			pBody->getMotionState()->getWorldTransform(trans);
+			XMFLOAT3 pos = XMFLOAT3(trans.getOrigin());
+			//QuaternionF quat = Convert(trans.getRotation());
+			//quat.ToRotationMatrix(mat);
+
+			////set translation and rotation
+
+			//gameObjects.at(i)->SetRotation(mat);
+			gameObjects.at(i)->SetPosition(pos);
+			
+
+		}
+	}
+}
 
 // --------------------------------------------------------
 // Loads shaders from compiled shader object (.cso) files
@@ -293,21 +334,9 @@ void MyDemoGame::CreateMatrices()
 
 void MyDemoGame::LoadDynamicsWorld()
 {
-	///collision configuration contains default setup for memory, collision setup. Advanced users can create their own configuration.
-	btDefaultCollisionConfiguration* collisionConfiguration = new btDefaultCollisionConfiguration();
 
-	///use the default collision dispatcher. For parallel processing you can use a diffent dispatcher (see Extras/BulletMultiThreaded)
-	btCollisionDispatcher* dispatcher = new	btCollisionDispatcher(collisionConfiguration);
-
-	///btDbvtBroadphase is a good general purpose broadphase. You can also try out btAxis3Sweep.
-	btBroadphaseInterface* overlappingPairCache = new btDbvtBroadphase();
-
-	///the default constraint solver. For parallel processing you can use a different solver (see Extras/BulletMultiThreaded)
-	btSequentialImpulseConstraintSolver* solver = new btSequentialImpulseConstraintSolver;
-
-	btDiscreteDynamicsWorld* dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher, overlappingPairCache, solver, collisionConfiguration);
-
-	dynamicsWorld->setGravity(btVector3(0, -10, 0));
+	physics = new Physics();
+	//physics.mpDynamicsWorld->addRigidBody(body);
 }
 
 #pragma endregion
@@ -340,6 +369,8 @@ void MyDemoGame::UpdateScene(float deltaTime, float totalTime)
 
 	}
 	
+	UpdatePhysicsWorld(static_cast<btScalar>(totalTime));
+
 	// Quit if the escape key is pressed
 	if (GetAsyncKeyState(VK_ESCAPE))
 		Quit();
@@ -364,6 +395,7 @@ void MyDemoGame::UpdateScene(float deltaTime, float totalTime)
 	if (GetAsyncKeyState('A') & 0x8000) {
 		myCamera->Strafe(-0.01f);
 	}
+
 
 	myCamera->Update();
 	viewMatrix = myCamera->GetviewMatrix();
