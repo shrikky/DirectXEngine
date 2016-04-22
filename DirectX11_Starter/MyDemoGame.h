@@ -76,9 +76,10 @@ private:
 	Mesh* _cube;
 	Mesh* _cube2;
 	Mesh* sbCube;
-
+	std::vector<Mesh*> meshes;
 	// GameObjects
 	std::vector<GameObject*> gameObjects;
+	GameObject* skyBoxCube;
 
 	//Skyboxes
 	SkyBox* _skybox;

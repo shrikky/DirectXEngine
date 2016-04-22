@@ -24,6 +24,7 @@
 #include "MyDemoGame.h"
 #include "Vertex.h"
 #include <iostream>
+//#include "vld.h"
 #include "DDSTextureLoader.h"
 
 // For the DirectX Math library
@@ -97,22 +98,42 @@ MyDemoGame::~MyDemoGame()
 	delete skyVS;
 	delete skyPS;
 	delete normalMappingPS;
+
+	delete skyBoxMaterial;
+	delete _cubeMaterial;
+	delete _cubeMaterial2;
+
+	delete myCamera;
+	samplerState->Release();
+	rasState->Release();
+	depthState->Release();
+
 	ImGui_ImplDX11_Shutdown();
 	delete shadowVS;
 	
+	delete _skybox;
+	delete skyBoxCube;
 
 	std::vector<GameObject*>::iterator it;
 	for (it = gameObjects.begin(); it != gameObjects.end(); ++it) {
 		delete (*it);
 	}
+
 	std::vector<ID3D11ShaderResourceView*>::iterator it1;
 	for (it1 = srvContainer.begin(); it1 != srvContainer.end(); ++it1) {
 		(*it1)->Release();
 	}
+<<<<<<< HEAD
 	shadowDSV->Release();
 	shadowSRV->Release();
 	shadowRS->Release();
 	shadowSampler->Release();
+=======
+	std::vector<Mesh*>::iterator it2;
+	for (it2 = meshes.begin(); it2 != meshes.end(); ++it2) {
+		delete (*it2);
+	}
+>>>>>>> master
 }
 
 #pragma endregion
@@ -145,7 +166,8 @@ bool MyDemoGame::Init()
 	//Create Materials
 	skyBoxMaterial = new Material(&skyVS, &skyPS);
 	skyBoxMaterial->Skybox(&skyVS, &skyPS, &device, &deviceContext, &samplerState, &skySRV, &rasState, &depthState, L"SunnyCubeMap.dds");
-	_cubeMaterial = new Material(&vertexShader, &normalMappingPS, &device, &deviceContext, &samplerState, &texSRV, L"bricks2.jpg");
+	_cubeMaterial = new Material(&vertexShader, &normalMappingPS, &device, &deviceContext, &samplerState, &texSRV, L"orange.jpg"); //if I can find 3 textures of differing qualities
+																																	//they should be put into materials
 	_cubeMaterial2 = new Material(&parallaxVS, &parallaxPS, &device, &deviceContext, &samplerState, &texSRV1,L"bricks2.jpg", &nMapSRV, L"bricks2_normal.jpg",&dMapSRV,L"bricks2_disp.jpg");
 	// Create Material -> Params (Vertexshader, Pixel shader)
 	
@@ -168,7 +190,7 @@ bool MyDemoGame::Init()
 	cube3->SetYPosition(-3);
 	//cube3->SetZPosition(-3);
 
-	GameObject* skyBoxCube = new GameObject(sbCube, skyBoxMaterial);
+	skyBoxCube = new GameObject(sbCube, skyBoxMaterial);
 	_skybox = new SkyBox(skyBoxCube);
 	//  Initialize Lights
 
@@ -330,8 +352,11 @@ void MyDemoGame::CreateGeometry()
 	// - Not necessary, just makes things more readable
 
 	_cube = new Mesh(device, "cube.obj");
+	meshes.push_back(_cube);
 	_cube2 = new Mesh(device, "cube.obj");
+	meshes.push_back(_cube2);
 	sbCube = new Mesh(device, "cube.obj");
+	meshes.push_back(sbCube);
 }
 
 
