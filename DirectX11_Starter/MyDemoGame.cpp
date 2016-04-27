@@ -123,17 +123,17 @@ MyDemoGame::~MyDemoGame()
 	for (it1 = srvContainer.begin(); it1 != srvContainer.end(); ++it1) {
 		(*it1)->Release();
 	}
-<<<<<<< HEAD
+///<<<<<<< HEAD
 	shadowDSV->Release();
 	shadowSRV->Release();
 	shadowRS->Release();
 	shadowSampler->Release();
-=======
+//=======
 	std::vector<Mesh*>::iterator it2;
 	for (it2 = meshes.begin(); it2 != meshes.end(); ++it2) {
 		delete (*it2);
 	}
->>>>>>> master
+//>>>>>>> master
 }
 
 #pragma endregion
@@ -166,8 +166,13 @@ bool MyDemoGame::Init()
 	//Create Materials
 	skyBoxMaterial = new Material(&skyVS, &skyPS);
 	skyBoxMaterial->Skybox(&skyVS, &skyPS, &device, &deviceContext, &samplerState, &skySRV, &rasState, &depthState, L"SunnyCubeMap.dds");
-	_cubeMaterial = new Material(&vertexShader, &normalMappingPS, &device, &deviceContext, &samplerState, &texSRV, L"orange.jpg"); //if I can find 3 textures of differing qualities
+	_cubeMaterial = new Material(&vertexShader, &normalMappingPS, &device, &deviceContext, &samplerState, &texSRV, L"bricks2.jpg"); //if I can find 3 textures of differing qualities
 																																	//they should be put into materials
+	doggoLow = new Material(&vertexShader, &normalMappingPS, &device, &deviceContext, &samplerState, &texSRV, L"FuzzyDoggoLow.jpg");
+	doggoMed = new Material(&vertexShader, &normalMappingPS, &device, &deviceContext, &samplerState, &texSRV, L"FuzzyDoggoMed.jpg");
+	doggoHigh = new Material(&vertexShader, &normalMappingPS, &device, &deviceContext, &samplerState, &texSRV, L"TextureLol.jpg");
+
+
 	_cubeMaterial2 = new Material(&parallaxVS, &parallaxPS, &device, &deviceContext, &samplerState, &texSRV1,L"bricks2.jpg", &nMapSRV, L"bricks2_normal.jpg",&dMapSRV,L"bricks2_disp.jpg");
 	// Create Material -> Params (Vertexshader, Pixel shader)
 	
@@ -188,8 +193,17 @@ bool MyDemoGame::Init()
 	gameObjects.push_back(cube3);
 	cube3->SetScale(XMFLOAT3(10, 1, 10));
 	cube3->SetYPosition(-3);
+
 	//cube3->SetZPosition(-3);
 
+
+	//big ass building
+	GameObject* building = new GameObject(_cube, doggoHigh, doggoMed,doggoLow, myCamera);
+	gameObjects.push_back(building);
+	building->SetScale(XMFLOAT3(10, 20, 10));
+	building->SetYPosition(3);
+	building->SetZPosition(30);
+	building->SetRotation(XMFLOAT3(0,0,1.57f));
 	skyBoxCube = new GameObject(sbCube, skyBoxMaterial);
 	_skybox = new SkyBox(skyBoxCube);
 	//  Initialize Lights
@@ -357,6 +371,8 @@ void MyDemoGame::CreateGeometry()
 	meshes.push_back(_cube2);
 	sbCube = new Mesh(device, "cube.obj");
 	meshes.push_back(sbCube);
+	distCube = new Mesh(device, "cube.obj");
+	meshes.push_back(distCube);
 }
 
 

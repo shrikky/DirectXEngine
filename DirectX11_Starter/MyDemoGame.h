@@ -76,6 +76,7 @@ private:
 	Mesh* _cube;
 	Mesh* _cube2;
 	Mesh* sbCube;
+	Mesh* distCube;
 	std::vector<Mesh*> meshes;
 	// GameObjects
 	std::vector<GameObject*> gameObjects;
@@ -98,6 +99,9 @@ private:
 	//Materials
 	Material* _cubeMaterial2;
 	Material* _cubeMaterial;
+	Material* doggoHigh;
+	Material* doggoMed;
+	Material* doggoLow;
 	Material* skyBoxMaterial;
 
 
