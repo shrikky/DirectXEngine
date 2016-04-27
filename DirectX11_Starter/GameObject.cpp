@@ -37,6 +37,9 @@ void GameObject::Draw(ID3D11DeviceContext* deviceContext) {
 		gameObjectMesh->GetIndexCount(),     // The number of indices to use (we could draw a subset if we wanted)
 		0,								// Offset to the first index we want to use
 		0);
+
+	gameObjectmaterial->vertexShader->SetShader(false);
+	gameObjectmaterial->pixelShader->SetShader(false);
 }
 void GameObject::SetWorldMatrix() {
 	XMMATRIX trans = XMMatrixTranslation(position.x, position.y, position.z);

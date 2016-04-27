@@ -37,7 +37,7 @@ public:
 	Mesh(int vertNum, Vertex* vert, int indNum, unsigned int* indices, ID3D11Device* deviceObj);
 	Mesh( ID3D11Device* deviceObj, char* filename);
 	void CalculateTangents(Vertex* vert, int vertNum, unsigned int* indices, int indNum);
-
+	void MakePostProcessContent();
 	~Mesh();
 
 };

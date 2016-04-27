@@ -68,7 +68,7 @@ float SpecLight(float3 normal, float3 camDir, float3 lightTowardsPLight, float s
 float2 ParallaxMapping(float2 texCoords, float3 viewDir){
 
 	float height =  depthMap.Sample(trillinear,texCoords).r;    
-    float2 p = viewDir.xy / viewDir.z * (height * 0.1f);
+    float2 p = viewDir.xy * (height * 0.1f);
     return texCoords - p;   
 }
 float4 main(VertexToPixel input) : SV_TARGET

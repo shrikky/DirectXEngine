@@ -24,7 +24,7 @@
 #include "MyDemoGame.h"
 #include "Vertex.h"
 #include <iostream>
-//#include "vld.h"
+#include "vld.h"
 #include "DDSTextureLoader.h"
 
 // For the DirectX Math library
@@ -96,6 +96,10 @@ MyDemoGame::~MyDemoGame()
 	delete skyVS;
 	delete skyPS;
 	delete normalMappingPS;
+	delete ppVS;
+	delete ppPS;
+	delete brtPS;
+	delete mergePS;
 
 	delete skyBoxMaterial;
 	delete _cubeMaterial;
@@ -105,8 +109,12 @@ MyDemoGame::~MyDemoGame()
 	samplerState->Release();
 	rasState->Release();
 	depthState->Release();
+	mRTV->Release();
+	bpRTV->Release();
+	brtpRTV->Release();
 
-	ImGui_ImplDX11_Shutdown();
+
+	//ImGui_ImplDX11_Shutdown();
 	
 	delete _skybox;
 	delete skyBoxCube;
@@ -156,16 +164,21 @@ bool MyDemoGame::Init()
 	//Create Materials
 	skyBoxMaterial = new Material(&skyVS, &skyPS);
 	skyBoxMaterial->Skybox(&skyVS, &skyPS, &device, &deviceContext, &samplerState, &skySRV, &rasState, &depthState, L"SunnyCubeMap.dds");
-	_cubeMaterial = new Material(&vertexShader, &normalMappingPS, &device, &deviceContext, &samplerState, &texSRV, L"orange.jpg"); //if I can find 3 textures of differing qualities
+	_cubeMaterial = new Material(&vertexShader, &normalMappingPS, &device, &deviceContext, &samplerState, &texSRV, L"bricks2.jpg", &nMapSRV, L"bricks2_normal.jpg"); //if I can find 3 textures of differing qualities
 																																	//they should be put into materials
-	_cubeMaterial2 = new Material(&parallaxVS, &parallaxPS, &device, &deviceContext, &samplerState, &texSRV1,L"bricks2.jpg", &nMapSRV, L"bricks2_normal.jpg",&dMapSRV,L"bricks2_disp.jpg");
+	_cubeMaterial2 = new Material(&parallaxVS, &parallaxPS, &device, &deviceContext, &samplerState, &texSRV1,L"bricks2.jpg", &nMapSRV1, L"bricks2_normal.jpg",&dMapSRV,L"bricks2_disp.jpg");
 	// Create Material -> Params (Vertexshader, Pixel shader)
 	
 	srvContainer.push_back(texSRV);
 	srvContainer.push_back(texSRV1);
 	srvContainer.push_back(nMapSRV);
+	srvContainer.push_back(nMapSRV1);
 	srvContainer.push_back(dMapSRV);
 	srvContainer.push_back(skySRV);
+	srvContainer.push_back(mSRV);
+	srvContainer.push_back(bpSRV);
+	srvContainer.push_back(brtSRV);
+
 
 	GameObject* cube = new GameObject(_cube, _cubeMaterial);
 	gameObjects.push_back(cube);
@@ -184,7 +197,7 @@ bool MyDemoGame::Init()
 	directionLight.DiffuseColor = XMFLOAT4(0, 1, 0, 0);
 	directionLight.Direction = XMFLOAT3(0, 0, -1);
 
-	pixelShader->SetData("directionLight", &directionLight, sizeof(directionLight));
+	//pixelShader->SetData("directionLight", &directionLight, sizeof(directionLight));
 	normalMappingPS->SetData("directionLight", &directionLight, sizeof(directionLight));
 	parallaxPS->SetData("directionLight", &directionLight, sizeof(directionLight));
 	parallaxVS->SetFloat3("dLightPos", directionLight.Direction);
@@ -193,7 +206,7 @@ bool MyDemoGame::Init()
 	pointLight.PointLightColor = XMFLOAT4(0, 1, 0, 0);
 	pointLight.Position = XMFLOAT3(0, 0, -2);
 	pointLight.Strength = 1;
-	pixelShader->SetData("pointLight", &pointLight, sizeof(pointLight));
+	//pixelShader->SetData("pointLight", &pointLight, sizeof(pointLight));
 	normalMappingPS->SetData("pointLight", &pointLight, sizeof(pointLight));
 	parallaxPS->SetData("pointLight", &pointLight, sizeof(pointLight));
 	parallaxVS->SetFloat3("lightPos", pointLight.Position);
@@ -201,7 +214,7 @@ bool MyDemoGame::Init()
 	// Specular Light
 	specularLight.SpecularStrength = 0.5f;
 	specularLight.SpecularColor = XMFLOAT4(1, 0, 0, 1);
-	pixelShader->SetData("specularLight", &specularLight, sizeof(specularLight));
+	//pixelShader->SetData("specularLight", &specularLight, sizeof(specularLight));
 	normalMappingPS->SetData("specularLight", &specularLight, sizeof(specularLight));
 	parallaxPS->SetData("specularLight", &specularLight, sizeof(specularLight));
 
@@ -222,8 +235,8 @@ void MyDemoGame::LoadShaders()
 	vertexShader = new SimpleVertexShader(device, deviceContext);
 	vertexShader->LoadShaderFile(L"VertexShader.cso");
 
-	pixelShader = new SimplePixelShader(device, deviceContext);
-	pixelShader->LoadShaderFile(L"PixelShader.cso");
+	//pixelShader = new SimplePixelShader(device, deviceContext);
+	//pixelShader->LoadShaderFile(L"PixelShader.cso");
 
 	normalMappingPS = new SimplePixelShader(device, deviceContext);
 	normalMappingPS->LoadShaderFile(L"NormalMapping.cso");
@@ -239,6 +252,20 @@ void MyDemoGame::LoadShaders()
 
 	skyPS = new SimplePixelShader(device, deviceContext);
 	skyPS->LoadShaderFile(L"SkyPS.cso");
+
+	ppVS = new SimpleVertexShader(device, deviceContext);
+	ppVS->LoadShaderFile(L"BlurVS.cso");
+
+	ppPS = new SimplePixelShader(device, deviceContext);
+	ppPS->LoadShaderFile(L"BlurPS.cso");
+
+	mergePS = new SimplePixelShader(device, deviceContext);
+	mergePS->LoadShaderFile(L"MergeShader.cso");
+
+	brtPS = new SimplePixelShader(device, deviceContext);
+	brtPS->LoadShaderFile(L"Brightness.cso");
+
+
 
 	D3D11_SAMPLER_DESC samplerDesc = {};
 	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -261,8 +288,52 @@ void MyDemoGame::LoadShaders()
 	dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
 	dsDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
 	device->CreateDepthStencilState(&dsDesc, &depthState);
+
+	//main Tex render target
+	MakePostProcessContent(mtDesc, rtvDesc, msrvDesc, mTexture, mRTV, mSRV);
+
+	//Get blur render Target ready
+	MakePostProcessContent(blurtDesc, blurrtvDesc, blursrvDesc, bpTexture, bpRTV, bpSRV);
+	
+	//Brightness render target
+	MakePostProcessContent(brttDesc, brtvDesc, brtsrvDesc, brtTexture, brtpRTV, brtSRV);
+	
 }
 
+void MyDemoGame::MakePostProcessContent(D3D11_TEXTURE2D_DESC& tDesc, D3D11_RENDER_TARGET_VIEW_DESC& rtvDesc, D3D11_SHADER_RESOURCE_VIEW_DESC& srvDesc, ID3D11Texture2D*& ppTexture, ID3D11RenderTargetView*& ppRTV, ID3D11ShaderResourceView*& ppSRV) 
+{
+
+	tDesc = {};
+	tDesc.Height = windowHeight;
+	tDesc.Width = windowWidth;
+	tDesc.ArraySize = 1;
+	tDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+	tDesc.CPUAccessFlags = 0;
+	tDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	tDesc.MipLevels = 1;
+	tDesc.MiscFlags = 0;
+	tDesc.SampleDesc.Count = 1;
+	tDesc.SampleDesc.Quality = 0;
+	tDesc.Usage = D3D11_USAGE_DEFAULT;
+	device->CreateTexture2D(&tDesc, 0, &ppTexture);
+
+	rtvDesc = {};
+	rtvDesc.Format = tDesc.Format;
+	rtvDesc.Texture2D.MipSlice = 0;
+	rtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+	device->CreateRenderTargetView(ppTexture, &rtvDesc, &ppRTV);
+
+	srvDesc = {};
+	srvDesc.Format = tDesc.Format;
+	srvDesc.Texture2D.MipLevels = tDesc.MipLevels;
+	srvDesc.Texture2D.MostDetailedMip = 0;
+	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	device->CreateShaderResourceView(ppTexture, &srvDesc, &ppSRV);
+
+	// Release one reference to the texture
+	 ppTexture->Release();
+
+}
 
 // --------------------------------------------------------
 // Creates the geometry we're going to draw - a single triangle for now
@@ -379,37 +450,111 @@ void MyDemoGame::UpdateScene(float deltaTime, float totalTime)
 // --------------------------------------------------------
 void MyDemoGame::DrawScene(float deltaTime, float totalTime)
 {
-
+	// Set buffers in the input assembler
+	UINT stride = sizeof(Vertex);
+	UINT offset = 0;
 	
 	// Background color (Cornflower Blue in this case) for clearing
 	const float color[4] = {0.4f, 0.6f, 0.75f, 0.0f};
 
+	//Swap to new Render Target to draw there !
+	deviceContext->OMSetRenderTargets(1, &mRTV, 0);
 	// Clear the render target and depth buffer (erases what's on the screen)
 	//  - Do this ONCE PER FRAME
 	//  - At the beginning of DrawScene (before drawing *anything*)
-	deviceContext->ClearRenderTargetView(renderTargetView, color);
-	deviceContext->ClearDepthStencilView(
-		depthStencilView, 
-		D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL,
-		1.0f,
-		0);
-	 
+	deviceContext->ClearRenderTargetView(mRTV, color);
 
-	pixelShader->SetFloat3("cameraPosition", myCamera->camPosition);
+
+	//pixelShader->SetFloat3("cameraPosition", myCamera->camPosition);
 	parallaxPS->SetFloat3("cameraPosition", myCamera->camPosition);
 	parallaxVS->SetFloat3("viewPos", myCamera->camPosition);
 
-	////
+	
 	std::vector<GameObject*>::iterator it;
 	for (it = gameObjects.begin(); it != gameObjects.end(); ++it) {
 		(*it)->PrepareMaterial(myCamera->GetviewMatrix(), myCamera->GetProjectionMatrix());
 		(*it)->Draw(deviceContext);
 	}
-	
-	_skybox->skyBox->PrepareMaterial(myCamera->GetviewMatrix(), myCamera->GetProjectionMatrix());
-	_skybox->Draw(deviceContext);
 
-	//Imgui code
+	//////
+
+
+
+//----------------------------------------------------------EXTRACT BRIGHTNESS----------------------------------------//
+	// Swap to the back buffer and do post processing
+	deviceContext->OMSetRenderTargets(1, &brtpRTV, 0);
+	deviceContext->ClearRenderTargetView(brtpRTV, color);
+
+	// Set up post processing shaders
+	ppVS->SetShader(true);
+
+	brtPS->SetShaderResourceView("pixels", mSRV);
+	brtPS->SetSamplerState("trilinear", samplerState);
+	brtPS->SetShader(true);
+
+	ID3D11Buffer* nothing = 0;
+	deviceContext->IASetVertexBuffers(0, 1, &nothing, &stride, &offset);
+	deviceContext->IASetIndexBuffer(0, DXGI_FORMAT_R32_UINT, 0);
+
+	// Actually draw the triangle that covers the screen
+	deviceContext->Draw(3, 0);
+
+	// Unbind the render target SRV
+	brtPS->SetShaderResourceView("pixels", 0);
+	ppVS->SetShader(0);
+	brtPS->SetShader(0);
+
+//---------------------------------------------BLUR------------------------------------------------------------------//
+	// Swap to the back buffer and do post processing
+	deviceContext->OMSetRenderTargets(1, &bpRTV, 0);
+	deviceContext->ClearRenderTargetView(bpRTV, color);
+
+	// Set up post processing shaders
+	ppVS->SetShader(true);
+
+	ppPS->SetInt("blurAmount", 6);
+	ppPS->SetFloat("pixelWidth", 1.0f / windowWidth);
+	ppPS->SetFloat("pixelHeight", 1.0f / windowHeight);
+	ppPS->SetShaderResourceView("pixels", brtSRV);
+	ppPS->SetSamplerState("trilinear", samplerState);
+	ppPS->SetShader(true);
+
+	ID3D11Buffer* nothing1 = 0;
+	deviceContext->IASetVertexBuffers(0, 1, &nothing1, &stride, &offset);
+	deviceContext->IASetIndexBuffer(0, DXGI_FORMAT_R32_UINT, 0);
+
+	// Actually draw the triangle that covers the screen
+	deviceContext->Draw(3, 0);
+
+	// Unbind the render target SRV
+	ppPS->SetShaderResourceView("pixels", 0);
+	ppVS->SetShader(0);
+	ppPS->SetShader(0);
+//-----------------------------------------------FINAL DISPLAY ON SCREEN--------------------------------------------//
+	// Swap to the back buffer and do post processing
+	deviceContext->OMSetRenderTargets(1, &renderTargetView, depthStencilView);
+	deviceContext->ClearRenderTargetView(renderTargetView, color);
+	deviceContext->ClearDepthStencilView(
+		depthStencilView,
+		D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL,
+		1.0f,
+		0);
+	// Set up post processing shaders
+	ppVS->SetShader(true);
+	mergePS->SetShaderResourceView("pixels", bpSRV);
+	mergePS->SetShaderResourceView("mainTex", mSRV);  //brtSRV, mSRV, bpSRV
+	mergePS->SetSamplerState("trilinear", samplerState);
+	mergePS->SetShader(true);
+
+	ID3D11Buffer* nothing2 = 0;
+	deviceContext->IASetVertexBuffers(0, 1, &nothing2, &stride, &offset);
+	deviceContext->IASetIndexBuffer(0, DXGI_FORMAT_R32_UINT, 0);
+
+	//_skybox->skyBox->PrepareMaterial(myCamera->GetviewMatrix(), myCamera->GetProjectionMatrix());
+	//_skybox->Draw(deviceContext);
+
+
+	/////Imgui code
 	ImGui_ImplDX11_NewFrame();
 
 	ImGui::Begin("Fancy GGP Game Engine");
@@ -441,11 +586,19 @@ void MyDemoGame::DrawScene(float deltaTime, float totalTime)
 		ImGui::ShowTestWindow(&show_test_window);
 	}
 	ImGui::Render();
-	//end of gui code
-
 
 	deviceContext->RSSetState(0);
 	deviceContext->OMSetDepthStencilState(0, 0);
+
+	deviceContext->Draw(3, 0);
+	// Unbind the render target SRV
+	mergePS->SetShaderResourceView("pixels", 0);
+	mergePS->SetShaderResourceView("mainTex", 0);
+	ppVS->SetShader(0);
+	mergePS->SetShader(0);
+	// Present the buffer
+	//  - Puts the image we're drawing into the window so the user can see it
+	//  - Do this exactly ONCE PER FRAME
 
 
 	HR(swapChain->Present(0, 0));

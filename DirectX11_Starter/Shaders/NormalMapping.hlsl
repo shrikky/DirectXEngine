@@ -36,9 +36,8 @@ cbuffer externalData : register(b0)
 // Directional Light calculation
 float4 CalculateDirectionalLight(float3 normal, DirectionalLight light) {
 	float3 output;
-	float3 direction = normalize(-light.Direction);
 	normal = normalize(normal);
-	float NdotL = saturate(dot(normal, light.Direction));
+	float NdotL = saturate(dot(normal, directionLight.Direction));
 	output = light.DiffuseColor * NdotL;
 	output += light.AmbientColor;
 	return float4(output, 1);
@@ -91,9 +90,9 @@ float4 main(VertexToPixel input) : SV_TARGET
 	float dist = distance(pointLight.Position,input.worldPos);
 	float3 dirTowardsPointLight = normalize(pointLight.Position - input.worldPos);
 	float3 dirTowardsCamera = normalize(cameraPosition - input.worldPos);
-	float4 surfaceColor = diffuseTexture.Sample(trillinear, input.uv);
+	float3 surfaceColor = diffuseTexture.Sample(trillinear, input.uv).rgb;
 
 	output =	pointLight.PointLightColor * CalculatePointLight(input.normal, dirTowardsPointLight, dist)+	// PointLight
 	CalculateDirectionalLight(input.normal, directionLight);										// DirectionalLight
-	return float4(output, 1) *surfaceColor + float4(SpecLight(input.normal, dirTowardsCamera, dirTowardsPointLight, specularLight.SpecularStrength).xxx, 1);
+	return float4(output, 1) * float4(surfaceColor,1) ;//+ float4(SpecLight(input.normal, dirTowardsCamera, dirTowardsPointLight, specularLight.SpecularStrength).xxx, 1);
 }

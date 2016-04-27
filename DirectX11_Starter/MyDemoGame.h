@@ -48,7 +48,7 @@ private:
 	void LoadShaders(); 
 	void CreateGeometry();
 	void CreateMatrices();
-
+	void MakePostProcessContent(D3D11_TEXTURE2D_DESC& tDesc, D3D11_RENDER_TARGET_VIEW_DESC& rtvDesc, D3D11_SHADER_RESOURCE_VIEW_DESC& srvDesc, ID3D11Texture2D*& ppTexture, ID3D11RenderTargetView*& ppRTV, ID3D11ShaderResourceView*& ppSRV);
 
 	// Wrappers for DirectX shaders to provide simplified functionality
 	SimpleVertexShader* vertexShader;
@@ -58,6 +58,10 @@ private:
 	SimplePixelShader* parallaxPS;
 	SimpleVertexShader* skyVS;
 	SimplePixelShader* skyPS;
+	SimpleVertexShader* ppVS;
+	SimplePixelShader* ppPS;
+	SimplePixelShader* mergePS;
+	SimplePixelShader* brtPS;
 
 
 	// The matrices to go from model space to screen space
@@ -85,8 +89,23 @@ private:
 	ID3D11ShaderResourceView* texSRV = 0;
 	ID3D11ShaderResourceView* texSRV1 = 0;
 	ID3D11ShaderResourceView* nMapSRV = 0;
+	ID3D11ShaderResourceView* nMapSRV1 = 0;
 	ID3D11ShaderResourceView* dMapSRV = 0;
 	ID3D11ShaderResourceView* skySRV = 0;
+	ID3D11ShaderResourceView* mSRV = 0;
+	ID3D11ShaderResourceView* bpSRV = 0;
+	ID3D11ShaderResourceView* brtSRV = 0;
+
+	//Textures
+	ID3D11Texture2D* mTexture;
+	ID3D11Texture2D* brtTexture;
+	ID3D11Texture2D* bpTexture;
+
+
+	//RenderTargetView
+	ID3D11RenderTargetView* mRTV;
+	ID3D11RenderTargetView* bpRTV;
+	ID3D11RenderTargetView* brtpRTV;
 
 	// Samplers
 	ID3D11SamplerState* samplerState;
@@ -97,6 +116,19 @@ private:
 	Material* _cubeMaterial2;
 	Material* _cubeMaterial;
 	Material* skyBoxMaterial;
+
+	//Descriptions
+	D3D11_TEXTURE2D_DESC mtDesc;
+	D3D11_TEXTURE2D_DESC brttDesc;
+	D3D11_TEXTURE2D_DESC blurtDesc;
+
+	D3D11_RENDER_TARGET_VIEW_DESC rtvDesc;
+	D3D11_RENDER_TARGET_VIEW_DESC brtvDesc;
+	D3D11_RENDER_TARGET_VIEW_DESC blurrtvDesc;
+
+	D3D11_SHADER_RESOURCE_VIEW_DESC brtsrvDesc;
+	D3D11_SHADER_RESOURCE_VIEW_DESC blursrvDesc;
+	D3D11_SHADER_RESOURCE_VIEW_DESC msrvDesc;
 
 
 	Camera* myCamera;
