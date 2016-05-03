@@ -158,13 +158,13 @@ bool MyDemoGame::Init()
 	gameObjects.push_back(cube);
 
 	physics->dynamicsWorld->addRigidBody(cube->body);
-	//physics->dynamicsWorld->addCollisionObject(cube->mPlayerObject);
+	physics->dynamicsWorld->addCollisionObject(cube->mPlayerObject);
 
 	GameObject* cube2 = new GameObject(_cube2, _cubeMaterial2);
 	gameObjects.push_back(cube2);
 
 	physics->dynamicsWorld->addRigidBody(cube2->body);
-	//physics->dynamicsWorld->addCollisionObject(cube2->mPlayerObject);
+	physics->dynamicsWorld->addCollisionObject(cube2->mPlayerObject);
 
 	cube->SetXPosition(-2);
 
@@ -221,7 +221,7 @@ void MyDemoGame::UpdatePhysicsWorld(float elapsedTime)
 		btRigidBody* pBody = gameObjects.at(i)->body;
 		if (pBody && pBody->getMotionState())
 		{
-			btTransform trans;
+			btTransform trans= gameObjects.at(i)->startTransform;
 			pBody->getMotionState()->getWorldTransform(trans);
 			XMFLOAT3 pos = XMFLOAT3(trans.getOrigin());
 			//QuaternionF quat = Convert(trans.getRotation());
@@ -400,9 +400,9 @@ void MyDemoGame::UpdateScene(float deltaTime, float totalTime)
 		myCamera->Strafe(-0.01f);
 	}
 
-	gameObjects.at(0)->SetXPosition(cosf(totalTime));
-	gameObjects.at(1)->SetXPosition(sinf(totalTime));
-
+	//gameObjects.at(0)->SetXPosition(cosf(totalTime));
+	//gameObjects.at(1)->SetXPosition(sinf(totalTime));
+	
 
 	myCamera->Update();
 	viewMatrix = myCamera->GetviewMatrix();

@@ -12,8 +12,6 @@ GameObject::GameObject(Mesh *mesh, Material* material)
 	scale = XMFLOAT3(1.0f, 1.0f, 1.0f);
 	gameObjectmaterial = material;
 
-	//InitializeRigidBody();
-
 	SetWorldMatrix();
 }
 
@@ -87,13 +85,15 @@ void GameObject::MoveForward() {
 void GameObject::InitializeRigidBody() {
 	//create a dynamic rigidbody
 
-	colShape = new btSphereShape(btScalar(1));
+	colShape = new btSphereShape(btScalar(0.05));	
+	mPlayerObject = new btCollisionObject();
+	mPlayerObject->setCollisionShape(colShape);
 	collisionShapes.push_back(colShape);
 
 	/// Create Dynamic Objects
 	startTransform.setIdentity();
 
-	mass = 10.0f;
+	mass = 1.0f;
 
 	localInertia = btVector3(0, 0, 0);
 	colShape->calculateLocalInertia(mass, localInertia);
@@ -108,7 +108,7 @@ void GameObject::InitializeRigidBody() {
 
 
 	//mPlayerBox = new btBoxShape(btVector3(1, 1, 1));
-	//mPlayerObject = new btCollisionObject();
+
 	//mPlayerObject->setCollisionShape(mPlayerBox);
 
 	//mPlayerObject->setWorldTransform(startTransform);

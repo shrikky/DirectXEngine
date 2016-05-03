@@ -12,11 +12,11 @@ Physics::Physics()
 Physics::~Physics()
 {
 
-	//delete broadphase ;
-	//delete collisionConfiguration;
-	//delete dispatcher;
-	//delete solver;
-	//delete dynamicsWorld;
+	delete broadphase ;
+	delete collisionConfiguration;
+	delete dispatcher;
+	delete solver;
+	delete dynamicsWorld;
 
 }
 
@@ -36,7 +36,7 @@ void Physics::CreatePhysicsWorld()
 
 	// The world.
    dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher, broadphase, solver, collisionConfiguration);
-	dynamicsWorld->setGravity(btVector3(0, -1, 0));
+	dynamicsWorld->setGravity(btVector3(0.1, 0, 0));
 
 
 	//create a ground

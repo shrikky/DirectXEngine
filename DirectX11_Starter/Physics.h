@@ -34,7 +34,7 @@ public:
 
 
 
-	btBroadphaseInterface* broadphase = new btDbvtBroadphase();
+	btBroadphaseInterface* broadphase;
 
 	// Set up the collision configuration and dispatcher
 	btDefaultCollisionConfiguration* collisionConfiguration ;
