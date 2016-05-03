@@ -56,6 +56,19 @@ void GameObject::Move() {
 	position.x = 5.0f;
 	SetWorldMatrix();
 }
+
+void GameObject::Strafe(float disp) {
+
+	XMVECTOR objPos = XMLoadFloat3(&position);
+	XMVECTOR _right = -XMLoadFloat3(&leftVector);
+	objPos += _right * disp;
+	XMStoreFloat3(&leftVector, _right);
+	XMStoreFloat3(&position, objPos);
+
+	SetWorldMatrix();
+
+}
+
 void GameObject::PrepareMaterial(XMFLOAT4X4 view, XMFLOAT4X4 proj) {
 
 	gameObjectmaterial->vertexShader->SetMatrix4x4("world", worldMatrix);
@@ -74,13 +87,13 @@ void GameObject::MoveForward() {
 void GameObject::InitializeRigidBody() {
 	//create a dynamic rigidbody
 
-	colShape = new btSphereShape(btScalar(1.0));
+	colShape = new btSphereShape(btScalar(1));
 	collisionShapes.push_back(colShape);
 
 	/// Create Dynamic Objects
 	startTransform.setIdentity();
 
-	mass = 1.0f;
+	mass = 10.0f;
 
 	localInertia = btVector3(0, 0, 0);
 	colShape->calculateLocalInertia(mass, localInertia);
@@ -91,5 +104,15 @@ void GameObject::InitializeRigidBody() {
 	myMotionState = new btDefaultMotionState(startTransform);
 	btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, myMotionState, colShape, localInertia);
 	body = new btRigidBody(rbInfo);
+
+
+
+	//mPlayerBox = new btBoxShape(btVector3(1, 1, 1));
+	//mPlayerObject = new btCollisionObject();
+	//mPlayerObject->setCollisionShape(mPlayerBox);
+
+	//mPlayerObject->setWorldTransform(startTransform);
+	//mPlayerObject->forceActivationState(DISABLE_DEACTIVATION);//maybe not needed
+	
 
 }

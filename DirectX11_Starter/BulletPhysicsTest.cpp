@@ -1,19 +1,19 @@
-#include "BulletPhysicsTest.h"
+#include "Physics.h"
 #include "btBulletDynamicsCommon.h"
 
 
 
-BulletPhysicsTest::BulletPhysicsTest()
+Physics::Physics()
 {
 }
 
 
-BulletPhysicsTest::~BulletPhysicsTest()
+Physics::~Physics()
 {
 }
 
 
-void BulletPhysicsTest::CreatePhysicsWorld()
+void Physics::CreatePhysicsWorld()
 {
 	///collision configuration contains default setup for memory.
 	// Advanced users can create their own configuration.

@@ -11,6 +11,13 @@ Physics::Physics()
 
 Physics::~Physics()
 {
+
+	//delete broadphase ;
+	//delete collisionConfiguration;
+	//delete dispatcher;
+	//delete solver;
+	//delete dynamicsWorld;
+
 }
 
 
@@ -25,30 +32,19 @@ void Physics::CreatePhysicsWorld()
 	 dispatcher = new btCollisionDispatcher(collisionConfiguration);
 
 	// The actual physics solver
-	 solver = new btSequentialImpulseConstraintSolver;
+	 solver = new btSequentialImpulseConstraintSolver();
 
 	// The world.
    dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher, broadphase, solver, collisionConfiguration);
-	dynamicsWorld->setGravity(btVector3(0, -10, 0));
+	dynamicsWorld->setGravity(btVector3(0, -1, 0));
 
 
-	/////collision configuration contains default setup for memory.
-	//// Advanced users can create their own configuration.
-	// mpCollisionConfiguration = new btDefaultCollisionConfiguration();
+	//create a ground
+	// groundShape = new btStaticPlaneShape(btVector3(0, 1, 0), 1);
+	//groundMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, -1, 0)));
+	//btRigidBody::btRigidBodyConstructionInfo
+	//	groundRigidBodyCI(0, groundMotionState, groundShape, btVector3(0, 0, 0));
+	// groundRigidBody = new btRigidBody(groundRigidBodyCI);
+	//dynamicsWorld->addRigidBody(groundRigidBody);
 
-	/////use the default collision dispatcher. For parallel processing you
-	//// can use a different dispatcher (see Extras/BulletMultiThreaded)
-	//mpDispatcher = new btCollisionDispatcher(mpCollisionConfiguration);
-
-	//mpOverlappingPairCache = new btAxisSweep3(worldAabbMin, worldAabbMax,
-	//	maxProxies);
-
-	/////the default constraint solver. For parallel processing you can use
-	//// a different solver (see Extras/BulletMultiThreaded)
-	//mpSolver = new btSequentialImpulseConstraintSolver();
-
-	//mpDynamicsWorld = new btDiscreteDynamicsWorld(mpDispatcher,
-	//	mpOverlappingPairCache, mpSolver, mpCollisionConfiguration);
-
-	/*mpDynamicsWorld->setGravity(btVector3(0, -10, 0));*/
 }

@@ -22,6 +22,8 @@ public:
 	XMFLOAT3 scale;
 	Mesh* gameObjectMesh;
 	Material* gameObjectmaterial;
+	XMFLOAT3 leftVector = XMFLOAT3(0, 0, 0);
+
 	XMFLOAT4X4 GetWorldMatrix() {
 		return worldMatrix;
 	}
@@ -79,6 +81,7 @@ public:
 	}
 
 	void Move();
+	void Strafe(float disp);
 	void SetWorldMatrix();
 	void MoveForward();
 	void Draw(ID3D11DeviceContext* deviceContext);
@@ -103,6 +106,11 @@ public:
 	btRigidBody* body;
 
 	void InitializeRigidBody();
+
+
+	btBoxShape * mPlayerBox ;
+	btCollisionObject * mPlayerObject ;
+
 
 
 private:

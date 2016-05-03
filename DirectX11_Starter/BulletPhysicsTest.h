@@ -3,11 +3,11 @@
 #include <DirectXMath.h>
 #include <d3d11.h>
 
-static class BulletPhysicsTest
+static class Physics
 {
 public:
-	BulletPhysicsTest();
-	~BulletPhysicsTest();
+	Physics();
+	~Physics();
 
 	void CreatePhysicsWorld();
 

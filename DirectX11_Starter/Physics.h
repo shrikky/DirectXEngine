@@ -47,5 +47,13 @@ public:
 	btDiscreteDynamicsWorld* dynamicsWorld ;
 
 
+	//for ground
+
+	btCollisionShape* groundShape;
+	btDefaultMotionState* groundMotionState ;
+
+	btRigidBody* groundRigidBody ;
+
+
 };
 

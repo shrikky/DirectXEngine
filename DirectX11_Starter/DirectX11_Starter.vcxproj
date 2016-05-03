@@ -80,7 +80,6 @@
     <ClCompile Include="..\Gui\imgui.cpp" />
     <ClCompile Include="..\Gui\imgui_demo.cpp" />
     <ClCompile Include="..\Gui\imgui_draw.cpp" />
-    <ClCompile Include="BulletPhysicsTest.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="imgui_impl_dx11.cpp" />
@@ -90,6 +89,7 @@
     <ClCompile Include="MyDemoGame.cpp" />
     <ClCompile Include="dxerr.cpp" />
     <ClCompile Include="DirectXGameCore.cpp" />
+    <ClCompile Include="Physics.cpp" />
     <ClCompile Include="SimpleShader.cpp" />
     <ClCompile Include="SkyBox.cpp" />
   </ItemGroup>
@@ -97,7 +97,6 @@
     <ClInclude Include="..\Gui\imconfig.h" />
     <ClInclude Include="..\Gui\imgui.h" />
     <ClInclude Include="..\Gui\imgui_internal.h" />
-    <ClInclude Include="BulletPhysicsTest.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="imgui_impl_dx11.h" />
@@ -108,6 +107,7 @@
     <ClInclude Include="MyDemoGame.h" />
     <ClInclude Include="dxerr.h" />
     <ClInclude Include="DirectXGameCore.h" />
+    <ClInclude Include="Physics.h" />
     <ClInclude Include="SimpleShader.h" />
     <ClInclude Include="SkyBox.h" />
     <ClInclude Include="Vertex.h" />
