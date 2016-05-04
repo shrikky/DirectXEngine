@@ -114,7 +114,7 @@ MyDemoGame::~MyDemoGame()
 	brtpRTV->Release();
 
 
-	//ImGui_ImplDX11_Shutdown();
+	ImGui_ImplDX11_Shutdown();
 	
 	delete _skybox;
 	delete skyBoxCube;
