@@ -219,7 +219,7 @@ bool MyDemoGame::Init()
 	parallaxPS->SetData("specularLight", &specularLight, sizeof(specularLight));
 
 	//Gui initialization
-	ImGui_ImplDX11_Init(hMainWnd, device, deviceContext);
+	/*ImGui_ImplDX11_Init(hMainWnd, device, deviceContext);*/
 
 	return true;
 }
@@ -555,37 +555,7 @@ void MyDemoGame::DrawScene(float deltaTime, float totalTime)
 
 
 	/////Imgui code
-	ImGui_ImplDX11_NewFrame();
-
-	ImGui::Begin("Fancy GGP Game Engine");
-	ImGui::Text("GUI Frame Work");
-	ImGui::SliderFloat("R", &r, 0.0f, 1.0f);
-	ImGui::SliderFloat("G", &g, 0.0f, 1.0f);
-	ImGui::SliderFloat("B", &b, 0.0f, 1.0f);
-	ImGui::ColorEdit3("color value", (float*)&clear_col);
-	if (ImGui::Button("Example Window"))
-		show_test_window ^= 1;
-	if (ImGui::Button("Next Window"))
-		show_another_window ^= 1;
-	ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-	ImGui::End();
-
-	// another sample window
-	if (show_another_window)
-	{
-		ImGui::SetNextWindowSize(ImVec2(200, 100), ImGuiSetCond_FirstUseEver);
-		ImGui::Begin("Hello world Window", &show_another_window);
-		ImGui::Text("Hello");
-		ImGui::End();
-	}
-
-	// Shows Test Window
-	if (show_test_window)
-	{
-		ImGui::SetNextWindowPos(ImVec2(650, 20), ImGuiSetCond_FirstUseEver);     // Normally user code doesn't need/want to call it because positions are saved in .ini file anyway. Here we just want to make the demo initial state a bit more friendly!
-		ImGui::ShowTestWindow(&show_test_window);
-	}
-	ImGui::Render();
+	
 
 	deviceContext->RSSetState(0);
 	deviceContext->OMSetDepthStencilState(0, 0);
