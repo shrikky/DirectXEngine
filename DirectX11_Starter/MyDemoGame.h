@@ -83,6 +83,7 @@ private:
 	Mesh* _cube2;
 	Mesh* sbCube;
 
+
 	// GameObjects
 	std::vector<GameObject*> gameObjects;
 

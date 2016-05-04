@@ -162,11 +162,21 @@ bool MyDemoGame::Init()
 
 	GameObject* cube2 = new GameObject(_cube2, _cubeMaterial2);
 	gameObjects.push_back(cube2);
-
 	physics->dynamicsWorld->addRigidBody(cube2->body);
 	physics->dynamicsWorld->addCollisionObject(cube2->mPlayerObject);
+	cube->SetXPosition(-10);
 
-	cube->SetXPosition(-2);
+	// for a physics demo
+	for (int i = 0; i < 50;i++)
+	{
+		
+		GameObject* g = new GameObject(_cube2, _cubeMaterial2,0.1+(i * 4), 0.1 + (i * 4), 0.1 + (i * 4));
+		gameObjects.push_back(g);
+		physics->dynamicsWorld->addRigidBody(g->body);
+		physics->dynamicsWorld->addCollisionObject(g->mPlayerObject);
+
+	}
+
 
 
 	GameObject* skyBoxCube = new GameObject(sbCube, skyBoxMaterial);
@@ -218,21 +228,17 @@ void MyDemoGame::UpdatePhysicsWorld(float elapsedTime)
 
 	for (int i = 0; i < gameObjects.size(); i++)
 	{
+		gameObjects.at(i)->body->activate(true);
+
 		btRigidBody* pBody = gameObjects.at(i)->body;
 		if (pBody && pBody->getMotionState())
 		{
 			btTransform trans= gameObjects.at(i)->startTransform;
 			pBody->getMotionState()->getWorldTransform(trans);
 			XMFLOAT3 pos = XMFLOAT3(trans.getOrigin());
-			//QuaternionF quat = Convert(trans.getRotation());
-			//quat.ToRotationMatrix(mat);
-
-			////set translation and rotation
-
-			//gameObjects.at(i)->SetRotation(mat);
 			gameObjects.at(i)->SetPosition(pos);
+			gameObjects.at(i)->SetRotation(trans.getRotation().getX(), trans.getRotation().getY(), trans.getRotation().getZ());
 			gameObjects.at(i)->SetWorldMatrix();
-			//gameObjects.at(i).body->setWorldTransform(startTransform);
 			
 
 		}
@@ -302,6 +308,7 @@ void MyDemoGame::CreateGeometry()
 	_cube = new Mesh(device, "cube.obj");
 	_cube2 = new Mesh(device, "cube.obj");
 	sbCube = new Mesh(device, "cube.obj");
+
 }
 
 
@@ -400,16 +407,29 @@ void MyDemoGame::UpdateScene(float deltaTime, float totalTime)
 		myCamera->Strafe(-0.01f);
 	}
 
-	//gameObjects.at(0)->SetXPosition(cosf(totalTime));
-	//gameObjects.at(1)->SetXPosition(sinf(totalTime));
-	
+	if (GetAsyncKeyState('K') & 0x8000) {
+		gameObjects.at(0)->body->applyCentralImpulse(btVector3(0.5f, 0.0f, 0.f));
+	}
 
+	if (GetAsyncKeyState('J') & 0x8000) {
+		gameObjects.at(0)->body->applyCentralImpulse(btVector3(-0.5f, 0.0f, 0.f));
+	}
+
+	if (GetAsyncKeyState('I') & 0x8000) {
+		gameObjects.at(0)->body->applyCentralImpulse(btVector3(0.0f, 0.5f, 0.f));
+	}
+
+	if (GetAsyncKeyState('M') & 0x8000) {
+		gameObjects.at(0)->body->applyCentralImpulse(btVector3(0.0f, -0.5f, 0.f));
+	}
+
+	//gameObjects.at(0)->body->applyCentralImpulse(btVector3(0.01f, 0.0f, 0.01f));
+	//gameObjects.at(1)->body->applyCentralImpulse(btVector3(-0.01f, 0.01f, 0.f));
 	myCamera->Update();
 	viewMatrix = myCamera->GetviewMatrix();
 	
-	
-	
 }
+
 
 // --------------------------------------------------------
 // Clear the screen, redraw everything, present to the user

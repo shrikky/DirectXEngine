@@ -14,26 +14,6 @@ public:
 
 	void CreatePhysicsWorld();
 
-	
-
-	//XMFLOAT3 worldAabbMin;
-	//XMFLOAT3 worldAabbMax;
-	//static btDiscreteDynamicsWorld* mpDynamicsWorld;
-
-
-	//btDefaultCollisionConfiguration * mpCollisionConfiguration ;
-	//btCollisionDispatcher * mpDispatcher ;
-
-
-	//int maxProxies;
-	//btAxisSweep3* mpOverlappingPairCache;
-
-	/////the default constraint solver. For parallel processing you can use
-	//// a different solver (see Extras/BulletMultiThreaded)
-	//btSequentialImpulseConstraintSolver * mpSolver;
-
-
-
 	btBroadphaseInterface* broadphase;
 
 	// Set up the collision configuration and dispatcher

@@ -11,12 +11,11 @@ Physics::Physics()
 
 Physics::~Physics()
 {
-
+	delete dynamicsWorld;
 	delete broadphase ;
 	delete collisionConfiguration;
 	delete dispatcher;
 	delete solver;
-	delete dynamicsWorld;
 
 }
 
@@ -36,15 +35,15 @@ void Physics::CreatePhysicsWorld()
 
 	// The world.
    dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher, broadphase, solver, collisionConfiguration);
-	dynamicsWorld->setGravity(btVector3(0.1, 0, 0));
+	dynamicsWorld->setGravity(btVector3(0, -10, 0));
 
 
 	//create a ground
-	// groundShape = new btStaticPlaneShape(btVector3(0, 1, 0), 1);
-	//groundMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, -1, 0)));
-	//btRigidBody::btRigidBodyConstructionInfo
-	//	groundRigidBodyCI(0, groundMotionState, groundShape, btVector3(0, 0, 0));
-	// groundRigidBody = new btRigidBody(groundRigidBodyCI);
-	//dynamicsWorld->addRigidBody(groundRigidBody);
+	 groundShape = new btStaticPlaneShape(btVector3(0, 1, 0), 1);
+	groundMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, -2, 0)));
+	btRigidBody::btRigidBodyConstructionInfo
+		groundRigidBodyCI(0, groundMotionState, groundShape, btVector3(0, 0, 0));
+	 groundRigidBody = new btRigidBody(groundRigidBodyCI);
+	dynamicsWorld->addRigidBody(groundRigidBody);
 
 }

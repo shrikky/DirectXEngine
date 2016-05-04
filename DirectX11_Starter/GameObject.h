@@ -60,6 +60,15 @@ public:
 		position = rot;
 	}
 
+	void SetRotation(float x, float y, float z)
+		{
+			rotation.x = x;
+			rotation.y = y;
+			rotation.z = z;
+		
+			SetWorldMatrix();
+		}
+
 	void SetRotationX(float x) {
 		rotation.x = x;
 		SetWorldMatrix();
@@ -77,6 +86,7 @@ public:
 	}
 
 	void SetScale(XMFLOAT3 scale) {
+		SetRigidBodyShape(scale.x/4, scale.y/4,scale.z/4);
 		 position = scale;
 	}
 
@@ -84,9 +94,15 @@ public:
 	void Strafe(float disp);
 	void SetWorldMatrix();
 	void MoveForward();
+	void SetMass(float newmass);
+	void SetDefaultMass();
+	void CleanupPhysicsObjects();
+	void SetRigidBodyShape(float scalex,float scaley,float scalez);
+	void SetRigidBodyShape();
 	void Draw(ID3D11DeviceContext* deviceContext);
 	void PrepareMaterial(XMFLOAT4X4 view, XMFLOAT4X4 proj);
 	GameObject(Mesh* mesh, Material* material);
+	GameObject(Mesh * mesh, Material * material, float x, float y, float z);
 	~GameObject();
 
 	//create a dynamic rigidbody
@@ -95,13 +111,12 @@ public:
 	btCollisionShape* colShape;
 
 	/// Create Dynamic Objects
-	btTransform startTransform;
+	btTransform  startTransform;
 
 	float mass;
 
 	btVector3 localInertia;
 
-	//using motionstate is recommended, it provides interpolation capabilities, and only synchronizes 'active' objects
 	btDefaultMotionState* myMotionState;
 	btRigidBody* body;
 

@@ -4,6 +4,8 @@
 
 GameObject::GameObject(Mesh *mesh, Material* material)
 {
+	//initializations for rigidbody
+	SetDefaultMass();
 	InitializeRigidBody();
 
 	gameObjectMesh = mesh;
@@ -12,13 +14,32 @@ GameObject::GameObject(Mesh *mesh, Material* material)
 	scale = XMFLOAT3(1.0f, 1.0f, 1.0f);
 	gameObjectmaterial = material;
 
+	body->activate(true);
+
+	SetWorldMatrix();
+}
+
+GameObject::GameObject(Mesh *mesh, Material* material,float x, float y, float z)
+{
+	//initializations for rigidbody
+	SetDefaultMass();
+	InitializeRigidBody();
+
+	gameObjectMesh = mesh;
+	position = XMFLOAT3(x, y, z);
+	rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
+	scale = XMFLOAT3(1.0f, 1.0f, 1.0f);
+	gameObjectmaterial = material;
+
+	body->activate(true);
+
 	SetWorldMatrix();
 }
 
 
 GameObject::~GameObject()
 {
-	
+	CleanupPhysicsObjects();
 }
 
 void GameObject::Draw(ID3D11DeviceContext* deviceContext) {
@@ -50,6 +71,7 @@ void GameObject::SetWorldMatrix() {
 	XMStoreFloat4x4(&worldMatrix, XMMatrixTranspose(model));	//Setting matrix as transpose
 	
 }
+
 void GameObject::Move() {
 	position.x = 5.0f;
 	SetWorldMatrix();
@@ -82,13 +104,44 @@ void GameObject::MoveForward() {
 
 }
 
+void GameObject::SetMass(float newmass) {
+	mass = newmass;
+	CleanupPhysicsObjects();
+	InitializeRigidBody();
+}
+
+void GameObject::SetDefaultMass() {
+
+	mass = 1.0f;
+	mPlayerBox = new btBoxShape(btVector3(0.25, 0.25, 0.25));
+
+}
+
+ void GameObject::CleanupPhysicsObjects() {
+	 delete body;
+	 delete myMotionState;
+	 delete mPlayerObject;
+	 delete mPlayerBox;
+}
+
+ void GameObject::SetRigidBodyShape(float scalex,float scaley,float scalez) {
+	 mPlayerBox = new btBoxShape(btVector3(scalex, scaley, scalez));
+	 CleanupPhysicsObjects();
+	 InitializeRigidBody();
+ }
+
+ void GameObject::SetRigidBodyShape()
+ {
+ }
+
 void GameObject::InitializeRigidBody() {
 	//create a dynamic rigidbody
 
-	colShape = new btSphereShape(btScalar(0.05));	
+	//colShape = new btSphereShape(btScalar(0.05));
+
 	mPlayerObject = new btCollisionObject();
-	mPlayerObject->setCollisionShape(colShape);
-	collisionShapes.push_back(colShape);
+	mPlayerObject->setCollisionShape(mPlayerBox);
+	collisionShapes.push_back(mPlayerBox);
 
 	/// Create Dynamic Objects
 	startTransform.setIdentity();
@@ -96,23 +149,15 @@ void GameObject::InitializeRigidBody() {
 	mass = 1.0f;
 
 	localInertia = btVector3(0, 0, 0);
-	colShape->calculateLocalInertia(mass, localInertia);
+	mPlayerBox->calculateLocalInertia(mass, localInertia);
 
 	startTransform.setOrigin(btVector3(position.x, position.y, position.z));
 
 	//using motionstate is recommended, it provides interpolation capabilities, and only synchronizes 'active' objects
 	myMotionState = new btDefaultMotionState(startTransform);
-	btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, myMotionState, colShape, localInertia);
+	btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, myMotionState, mPlayerBox, localInertia);
 	body = new btRigidBody(rbInfo);
 
-
-
-	//mPlayerBox = new btBoxShape(btVector3(1, 1, 1));
-
-	//mPlayerObject->setCollisionShape(mPlayerBox);
-
-	//mPlayerObject->setWorldTransform(startTransform);
-	//mPlayerObject->forceActivationState(DISABLE_DEACTIVATION);//maybe not needed
-	
+	mPlayerObject->setWorldTransform(startTransform);	
 
 }
