@@ -87,7 +87,6 @@ MyDemoGame::~MyDemoGame()
 	// Release any D3D stuff that's still hanging out
 	//ReleaseMacro(vertexBuffer);
 	//ReleaseMacro(indexBuffer);
-
 	// Delete our simple shaders
 	delete vertexShader;
 	delete pixelShader;
@@ -104,6 +103,7 @@ MyDemoGame::~MyDemoGame()
 	delete skyBoxMaterial;
 	delete _cubeMaterial;
 	delete _cubeMaterial2;
+	delete _helixMaterial;
 
 	delete myCamera;
 	samplerState->Release();
@@ -112,12 +112,14 @@ MyDemoGame::~MyDemoGame()
 	mRTV->Release();
 	bpRTV->Release();
 	brtpRTV->Release();
-
+	blendState->Release();
 
 	ImGui_ImplDX11_Shutdown();
 	
 	delete _skybox;
 	delete skyBoxCube;
+
+	delete helixGameObject;
 
 	std::vector<GameObject*>::iterator it;
 	for (it = gameObjects.begin(); it != gameObjects.end(); ++it) {
@@ -168,6 +170,9 @@ bool MyDemoGame::Init()
 																																	//they should be put into materials
 	_cubeMaterial2 = new Material(&parallaxVS, &parallaxPS, &device, &deviceContext, &samplerState, &texSRV1,L"bricks2.jpg", &nMapSRV1, L"bricks2_normal.jpg",&dMapSRV,L"bricks2_disp.jpg");
 	// Create Material -> Params (Vertexshader, Pixel shader)
+
+	_helixMaterial = new Material(&vertexShader, &pixelShader, &device, &deviceContext, &samplerState, &helixTexSRV, L"bricks2.jpg"); //if I can find 3 textures of differing qualities
+																																									 //they should be put into materials
 	
 	srvContainer.push_back(texSRV);
 	srvContainer.push_back(texSRV1);
@@ -178,14 +183,17 @@ bool MyDemoGame::Init()
 	srvContainer.push_back(mSRV);
 	srvContainer.push_back(bpSRV);
 	srvContainer.push_back(brtSRV);
+	srvContainer.push_back(helixTexSRV);
 
 
 	GameObject* cube = new GameObject(_cube, _cubeMaterial);
 	gameObjects.push_back(cube);
 	GameObject* cube2 = new GameObject(_cube2, _cubeMaterial2);
 	gameObjects.push_back(cube2);
+	helixGameObject = new GameObject(_helix, _helixMaterial);
 
 	cube->SetXPosition(-2);
+	helixGameObject->SetXPosition(2);
 
 
 	skyBoxCube = new GameObject(sbCube, skyBoxMaterial);
@@ -218,12 +226,43 @@ bool MyDemoGame::Init()
 	normalMappingPS->SetData("specularLight", &specularLight, sizeof(specularLight));
 	parallaxPS->SetData("specularLight", &specularLight, sizeof(specularLight));
 
+	
+	// Create a description of the blend state I want
+	D3D11_BLEND_DESC blendDesc = {};
+
+	// Set up some of the basic options
+	blendDesc.AlphaToCoverageEnable = false;
+	blendDesc.IndependentBlendEnable = false;
+
+	// Set up the blend options for the first render target
+	blendDesc.RenderTarget[0].BlendEnable = true;
+
+	// Settings for how colors (RGB) are blended (ALPHA BLENDING)
+	blendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
+	blendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+	blendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+
+	// Settings for ADDITIVE BLENDING
+	//blendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
+	//blendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_ONE;
+	//blendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+
+	// Settings for how the alpha channel is blended
+	blendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+	blendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
+	blendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+
+	// Write masks
+	blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+
+	// Create the blend state object
+	device->CreateBlendState(&blendDesc, &blendState);
+
 	//Gui initialization
 	/*ImGui_ImplDX11_Init(hMainWnd, device, deviceContext);*/
 
 	return true;
 }
-
 
 // --------------------------------------------------------
 // Loads shaders from compiled shader object (.cso) files
@@ -235,8 +274,8 @@ void MyDemoGame::LoadShaders()
 	vertexShader = new SimpleVertexShader(device, deviceContext);
 	vertexShader->LoadShaderFile(L"VertexShader.cso");
 
-	//pixelShader = new SimplePixelShader(device, deviceContext);
-	//pixelShader->LoadShaderFile(L"PixelShader.cso");
+	pixelShader = new SimplePixelShader(device, deviceContext);
+	pixelShader->LoadShaderFile(L"PixelShader.cso");
 
 	normalMappingPS = new SimplePixelShader(device, deviceContext);
 	normalMappingPS->LoadShaderFile(L"NormalMapping.cso");
@@ -347,6 +386,8 @@ void MyDemoGame::CreateGeometry()
 	meshes.push_back(_cube);
 	_cube2 = new Mesh(device, "cube.obj");
 	meshes.push_back(_cube2);
+	_helix = new Mesh(device, "helix.obj");
+	meshes.push_back(_helix);
 	sbCube = new Mesh(device, "cube.obj");
 	meshes.push_back(sbCube);
 }
@@ -459,6 +500,14 @@ void MyDemoGame::DrawScene(float deltaTime, float totalTime)
 
 	//Swap to new Render Target to draw there !
 	deviceContext->OMSetRenderTargets(1, &mRTV, 0);
+
+	// Turn Off the blend state
+	float factors[4] = { 0,0,0,1 };
+	deviceContext->OMSetBlendState(
+		NULL,
+		factors,
+		0xFFFFFFFF);
+
 	// Clear the render target and depth buffer (erases what's on the screen)
 	//  - Do this ONCE PER FRAME
 	//  - At the beginning of DrawScene (before drawing *anything*)
@@ -469,16 +518,26 @@ void MyDemoGame::DrawScene(float deltaTime, float totalTime)
 	parallaxPS->SetFloat3("cameraPosition", myCamera->camPosition);
 	parallaxVS->SetFloat3("viewPos", myCamera->camPosition);
 
-	
 	std::vector<GameObject*>::iterator it;
 	for (it = gameObjects.begin(); it != gameObjects.end(); ++it) {
 		(*it)->PrepareMaterial(myCamera->GetviewMatrix(), myCamera->GetProjectionMatrix());
 		(*it)->Draw(deviceContext);
 	}
 
-	//////
+	// Turn on the blend state
+	deviceContext->OMSetBlendState(
+		blendState,
+		factors,
+		0xFFFFFFFF);
 
+	helixGameObject->PrepareMaterial(myCamera->GetviewMatrix(), myCamera->GetProjectionMatrix());
+	helixGameObject->Draw(deviceContext);
 
+	// Turn off the blend state
+	deviceContext->OMSetBlendState(
+		NULL,
+		factors,
+		0xFFFFFFFF);
 
 //----------------------------------------------------------EXTRACT BRIGHTNESS----------------------------------------//
 	// Swap to the back buffer and do post processing
@@ -550,15 +609,25 @@ void MyDemoGame::DrawScene(float deltaTime, float totalTime)
 	deviceContext->IASetVertexBuffers(0, 1, &nothing2, &stride, &offset);
 	deviceContext->IASetIndexBuffer(0, DXGI_FORMAT_R32_UINT, 0);
 
-	//_skybox->skyBox->PrepareMaterial(myCamera->GetviewMatrix(), myCamera->GetProjectionMatrix());
-	//_skybox->Draw(deviceContext);
-
-
-	/////Imgui code
+	/*
+	// Turn on the blend state
+	deviceContext->OMSetBlendState(
+		blendState,
+		factors,
+		0xFFFFFFFF);
 	
+	_skybox->skyBox->PrepareMaterial(myCamera->GetviewMatrix(), myCamera->GetProjectionMatrix());
+	_skybox->Draw(deviceContext);
+
+	// Turn off the blend state
+	deviceContext->OMSetBlendState(
+	NULL,
+	factors,
+	0xFFFFFFFF);
 
 	deviceContext->RSSetState(0);
 	deviceContext->OMSetDepthStencilState(0, 0);
+	*/
 
 	deviceContext->Draw(3, 0);
 	// Unbind the render target SRV
@@ -569,7 +638,6 @@ void MyDemoGame::DrawScene(float deltaTime, float totalTime)
 	// Present the buffer
 	//  - Puts the image we're drawing into the window so the user can see it
 	//  - Do this exactly ONCE PER FRAME
-
 
 	HR(swapChain->Present(0, 0));
 }
