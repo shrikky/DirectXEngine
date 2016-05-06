@@ -455,7 +455,10 @@ LRESULT DirectXGameCore::ProcessMessage(HWND hwnd, UINT msg, WPARAM wParam, LPAR
 {
 
 	if (ImGui_ImplDX11_WndProcHandler(hwnd, msg, wParam, lParam))
-	return true;
+	{
+
+	}
+	//return true;
 
 	switch( msg )
 	{
