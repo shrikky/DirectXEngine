@@ -50,17 +50,20 @@ public:
 
 	void SetPosition(XMFLOAT3 pos) {
 		position = pos;
+		SetWorldMatrix();
 	}
 	void SetRotation(XMFLOAT3 rot) {
-		position = rot;
+		rotation = rot;
+		SetWorldMatrix();
 	}
 
 	void SetRotationY(float y) {
 		rotation.y = y;
 		SetWorldMatrix();
 	}
-	void SetScale(XMFLOAT3 scale) {
-		 position = scale;
+	void SetScale(XMFLOAT3 _scale) {
+		 scale = _scale;
+		 SetWorldMatrix();
 	}
 
 	void Move();

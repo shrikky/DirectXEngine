@@ -43,9 +43,11 @@ void GameObject::Draw(ID3D11DeviceContext* deviceContext) {
 }
 void GameObject::SetWorldMatrix() {
 	XMMATRIX trans = XMMatrixTranslation(position.x, position.y, position.z);
-	XMMATRIX rot = XMMatrixRotationY(rotation.y);
+	XMMATRIX rotY = XMMatrixRotationY(rotation.y);
+	XMMATRIX rotX = XMMatrixRotationX(rotation.x);
+	XMMATRIX rotZ = XMMatrixRotationZ(rotation.z);
 	XMMATRIX scaleMatrix = XMMatrixScaling(scale.x, scale.y, scale.z);
-	XMMATRIX model = scaleMatrix * rot * trans;
+	XMMATRIX model = scaleMatrix * rotZ * rotY * rotX * trans;
 	XMStoreFloat4x4(&worldMatrix, XMMatrixTranspose(model));	//Setting matrix as transpose
 }
 void GameObject::Move() {

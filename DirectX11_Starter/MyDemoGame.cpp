@@ -24,7 +24,7 @@
 #include "MyDemoGame.h"
 #include "Vertex.h"
 #include <iostream>
-#include "vld.h"
+//#include "vld.h"
 #include "DDSTextureLoader.h"
 
 // For the DirectX Math library
@@ -184,6 +184,11 @@ bool MyDemoGame::Init()
 	gameObjects.push_back(cube);
 	GameObject* cube2 = new GameObject(_cube2, _cubeMaterial2);
 	gameObjects.push_back(cube2);
+	for (int i = 0; i < 1000;  i++)
+	{
+		gameObjects.push_back(new GameObject(_cube, _cubeMaterial));
+		gameObjects[i]->SetPosition(XMFLOAT3(2*(i/100), (i%100/10) * 2, i%10*2));
+	}
 
 	cube->SetXPosition(-2);
 
@@ -420,22 +425,28 @@ void MyDemoGame::UpdateScene(float deltaTime, float totalTime)
 	//Cube->SetXPosition((totalTime));
 	if (GetAsyncKeyState(VK_SPACE)) {
 		myCamera->SetRotationY(sinf(totalTime));
-		myCamera->VerticalMovement(0.001f);
+		myCamera->VerticalMovement(10.0f*deltaTime);
 	}
 	if (GetAsyncKeyState('X') & 0x8000) {
-		myCamera->VerticalMovement(-0.001f);
+		myCamera->VerticalMovement(-10.0f*deltaTime);
 	}
 	if (GetAsyncKeyState('W') & 0x8000) {
-		myCamera->Forward(0.01f);
+		myCamera->Forward(10.0f*deltaTime);
 	}
 	if (GetAsyncKeyState('S') & 0x8000) {
-		myCamera->Forward(-0.01f);
+		myCamera->Forward(-10.0f*deltaTime);
 	}
 	if (GetAsyncKeyState('D') & 0x8000) {
-		myCamera->Strafe(0.01f);
+		myCamera->Strafe(10.0f*deltaTime);
 	}
 	if (GetAsyncKeyState('A') & 0x8000) {
-		myCamera->Strafe(-0.01f);
+		myCamera->Strafe(-10.0f*deltaTime);
+	}
+	
+	std::vector<GameObject*>::iterator it;
+	for (it = gameObjects.begin(); it != gameObjects.end(); ++it)
+	{
+		(*it)->SetRotation(XMFLOAT3(totalTime, totalTime, totalTime));
 	}
 
 	myCamera->Update();
