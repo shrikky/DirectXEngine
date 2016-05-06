@@ -77,11 +77,15 @@ private:
 	// Meshes
 	Mesh* _cube;
 	Mesh* _cube2;
+	Mesh* _helix;
 	Mesh* sbCube;
 	std::vector<Mesh*> meshes;
 	// GameObjects
 	std::vector<GameObject*> gameObjects;
+	GameObject* helixGameObject;
 	GameObject* skyBoxCube;
+
+	ID3D11BlendState* blendState;
 
 	//Skyboxes
 	SkyBox* _skybox;
@@ -89,6 +93,7 @@ private:
 	ID3D11ShaderResourceView* texSRV = 0;
 	ID3D11ShaderResourceView* texSRV1 = 0;
 	ID3D11ShaderResourceView* nMapSRV = 0;
+	ID3D11ShaderResourceView* helixTexSRV = 0;
 	ID3D11ShaderResourceView* nMapSRV1 = 0;
 	ID3D11ShaderResourceView* dMapSRV = 0;
 	ID3D11ShaderResourceView* skySRV = 0;
@@ -113,6 +118,7 @@ private:
 	ID3D11DepthStencilState*	depthState;
 
 	//Materials
+	Material* _helixMaterial;
 	Material* _cubeMaterial2;
 	Material* _cubeMaterial;
 	Material* skyBoxMaterial;

@@ -30,7 +30,7 @@ float4 main(VertexToPixel input) : SV_TARGET
     float2 uv = input.uv;// + float2(x * pixelWidth, y * pixelHeight);
 
         tempColor = pixels.Sample(trilinear, uv);
-		if((tempColor.r + tempColor.g + tempColor.b )> 1.5f)
+		if((tempColor.r + tempColor.g + tempColor.b )> 0.3f)
 	   {
 			totalColor +=tempColor;
 			numSamples++;
