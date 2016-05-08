@@ -454,8 +454,7 @@ extern LRESULT ImGui_ImplDX11_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam,
 LRESULT DirectXGameCore::ProcessMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 
-	if (ImGui_ImplDX11_WndProcHandler(hwnd, msg, wParam, lParam))
-	return true;
+	ImGui_ImplDX11_WndProcHandler(hwnd, msg, wParam, lParam);
 
 	switch( msg )
 	{

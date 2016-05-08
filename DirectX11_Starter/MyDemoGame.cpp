@@ -220,7 +220,7 @@ bool MyDemoGame::Init()
 void MyDemoGame::UpdatePhysicsWorld(float elapsedTime)
 {
 	// fixed 1/60 timestep
-	physics->dynamicsWorld->stepSimulation(1/200.0f, 10);
+	physics->dynamicsWorld->stepSimulation(1/10.0f, 1);
 
 	XMFLOAT3 mat;
 	const btCollisionObjectArray& objectArray = physics->dynamicsWorld->
@@ -408,19 +408,19 @@ void MyDemoGame::UpdateScene(float deltaTime, float totalTime)
 	}
 
 	if (GetAsyncKeyState('K') & 0x8000) {
-		gameObjects.at(0)->body->applyCentralImpulse(btVector3(0.5f, 0.0f, 0.f));
+		gameObjects.at(0)->body->applyCentralImpulse(btVector3(1.0f, 0.0f, 0.f));
 	}
 
 	if (GetAsyncKeyState('J') & 0x8000) {
-		gameObjects.at(0)->body->applyCentralImpulse(btVector3(-0.5f, 0.0f, 0.f));
+		gameObjects.at(0)->body->applyCentralImpulse(btVector3(-1.0f, 0.0f, 0.f));
 	}
 
 	if (GetAsyncKeyState('I') & 0x8000) {
-		gameObjects.at(0)->body->applyCentralImpulse(btVector3(0.0f, 0.5f, 0.f));
+		gameObjects.at(0)->body->applyCentralImpulse(btVector3(0.0f, 0.0f,1.0f));
 	}
 
 	if (GetAsyncKeyState('M') & 0x8000) {
-		gameObjects.at(0)->body->applyCentralImpulse(btVector3(0.0f, -0.5f, 0.f));
+		gameObjects.at(0)->body->applyCentralImpulse(btVector3(0.0f, 0.0f,-1.0f));
 	}
 
 	//gameObjects.at(0)->body->applyCentralImpulse(btVector3(0.01f, 0.0f, 0.01f));
