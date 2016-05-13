@@ -69,10 +69,10 @@ float GameObject::distance(XMFLOAT3 pt1, XMFLOAT3 pt2)
 	XMVECTOR temp2 = XMVectorSet(pt2.x, pt2.y, pt2.z, 0);
 	XMVECTOR value = XMVector3Dot(temp1, temp2);
 	float temp = (pow((pt2.x - pt1.x), 2) + pow((pt2.y - pt1.y), 2) + pow((pt2.z - pt1.z), 2));
-	if (Framecount % 2000 == 0) {
-		temp = temp;
+	//if (Framecount % 2000 == 0) {
+	//	temp = temp;
 
-	}
+	//}
 	return sqrt(temp);
 	//return 1.0f;
 }
