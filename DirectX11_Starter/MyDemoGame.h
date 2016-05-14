@@ -57,12 +57,12 @@ private:
 	SimpleVertexShader* vertexShader;
 	SimplePixelShader* pixelShader;
 	SimplePixelShader* normalMappingPS;
-	SimpleVertexShader* parallaxVS;
 	SimplePixelShader* parallaxPS;
 	SimpleVertexShader* skyVS;
 	SimplePixelShader* skyPS;
 	SimpleVertexShader* ppVS;
 	SimplePixelShader* ppPS;
+	SimpleVertexShader* parallaxVS;
 	SimplePixelShader* mergePS;
 	SimplePixelShader* brtPS;
 
@@ -123,11 +123,15 @@ private:
 
 	//Materials
 	Material* _helixMaterial;
+
 	Material* _cubeMaterial2;
 	Material* _cubeMaterial;
 	Material* doggoHigh;
 	Material* doggoMed;
 	Material* doggoLow;
+
+	Material* _NormalMapMat;
+
 	Material* skyBoxMaterial;
 
 	//Descriptions
@@ -160,6 +164,7 @@ private:
 	 float g = 0.0f;
 	 float b = 0.0f;
 
+
 	 // Shadow map "stuff"
 	 int shadowMapSize;
 	 ID3D11DepthStencilView* shadowDSV;
@@ -169,4 +174,7 @@ private:
 	 SimpleVertexShader* shadowVS;
 	 DirectX::XMFLOAT4X4 shadowView;
 	 DirectX::XMFLOAT4X4 shadowProj;
+
+	 bool isBloom = false;
+
 };

@@ -124,12 +124,6 @@
     <FxCompile Include="Shaders\NormalMapping.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="Shaders\ParallaxMapping.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Shaders\ParallaxVertexShader.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
     <FxCompile Include="skyVS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
