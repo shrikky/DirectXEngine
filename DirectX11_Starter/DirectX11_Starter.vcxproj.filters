@@ -136,6 +136,7 @@
     <FxCompile Include="skyPS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
+<<<<<<< HEAD
     <FxCompile Include="BlurPS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
@@ -146,6 +147,9 @@
       <Filter>Shaders</Filter>
     </FxCompile>
     <FxCompile Include="MergeShader.hlsl">
+=======
+    <FxCompile Include="ShadowVertex.hlsl">
+>>>>>>> Rose-Branch-from-GUI
       <Filter>Shaders</Filter>
     </FxCompile>
   </ItemGroup>
