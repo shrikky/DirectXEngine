@@ -13,22 +13,18 @@ Material::Material(SimpleVertexShader** vert, SimplePixelShader** pix, ID3D11Dev
 	
 		CreateWICTextureFromFile(*device, *deviceContext, texture, 0, texSRV);
 		_texSRV = *texSRV;
-	//	pixelShader->SetShaderResourceView("diffuseTexture", *texSRV);
 
 	if (normalMap) {
 		
 		CreateWICTextureFromFile(*device, *deviceContext, normalMap, 0, nMap);
 		_nMapSRV = *nMap;
-		//pixelShader->SetShaderResourceView("normalMap", *nMap);
 	}
 	if (depthMap) {
 		
 		CreateWICTextureFromFile(*device, *deviceContext, depthMap, 0, dMap);
 		_dMapSRV = *dMap;
-		//pixelShader->SetShaderResourceView("depthMap", *dMap);
 	}
 
-	//pixelShader->SetSamplerState("trillinear", samplerState);
 
 }
 

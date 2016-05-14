@@ -54,8 +54,6 @@ private:
 	SimpleVertexShader* vertexShader;
 	SimplePixelShader* pixelShader;
 	SimplePixelShader* normalMappingPS;
-	SimpleVertexShader* parallaxVS;
-	SimplePixelShader* parallaxPS;
 	SimpleVertexShader* skyVS;
 	SimplePixelShader* skyPS;
 	SimpleVertexShader* ppVS;
@@ -91,10 +89,8 @@ private:
 	SkyBox* _skybox;
 	//SRV
 	ID3D11ShaderResourceView* texSRV = 0;
-	ID3D11ShaderResourceView* texSRV1 = 0;
 	ID3D11ShaderResourceView* nMapSRV = 0;
 	ID3D11ShaderResourceView* helixTexSRV = 0;
-	ID3D11ShaderResourceView* nMapSRV1 = 0;
 	ID3D11ShaderResourceView* dMapSRV = 0;
 	ID3D11ShaderResourceView* skySRV = 0;
 	ID3D11ShaderResourceView* mSRV = 0;
@@ -119,8 +115,7 @@ private:
 
 	//Materials
 	Material* _helixMaterial;
-	Material* _cubeMaterial2;
-	Material* _cubeMaterial;
+	Material* _NormalMapMat;
 	Material* skyBoxMaterial;
 
 	//Descriptions
@@ -152,4 +147,6 @@ private:
 	 float r = 1.0f;
 	 float g = 0.0f;
 	 float b = 0.0f;
+
+	 bool isBloom = false;
 };
