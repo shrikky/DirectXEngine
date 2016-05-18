@@ -50,16 +50,19 @@ private:
 	void CreateMatrices();
 	void MakePostProcessContent(D3D11_TEXTURE2D_DESC& tDesc, D3D11_RENDER_TARGET_VIEW_DESC& rtvDesc, D3D11_SHADER_RESOURCE_VIEW_DESC& srvDesc, ID3D11Texture2D*& ppTexture, ID3D11RenderTargetView*& ppRTV, ID3D11ShaderResourceView*& ppSRV);
 
+	void RenderShadowMap();
+	void MakeShadowContent();
+
 	// Wrappers for DirectX shaders to provide simplified functionality
 	SimpleVertexShader* vertexShader;
 	SimplePixelShader* pixelShader;
 	SimplePixelShader* normalMappingPS;
-	SimpleVertexShader* parallaxVS;
 	SimplePixelShader* parallaxPS;
 	SimpleVertexShader* skyVS;
 	SimplePixelShader* skyPS;
 	SimpleVertexShader* ppVS;
 	SimplePixelShader* ppPS;
+	SimpleVertexShader* parallaxVS;
 	SimplePixelShader* mergePS;
 	SimplePixelShader* brtPS;
 
@@ -79,6 +82,7 @@ private:
 	Mesh* _cube2;
 	Mesh* _helix;
 	Mesh* sbCube;
+	Mesh* distCube;
 	std::vector<Mesh*> meshes;
 	// GameObjects
 	std::vector<GameObject*> gameObjects;
@@ -119,8 +123,15 @@ private:
 
 	//Materials
 	Material* _helixMaterial;
+
 	Material* _cubeMaterial2;
 	Material* _cubeMaterial;
+	Material* doggoHigh;
+	Material* doggoMed;
+	Material* doggoLow;
+
+	Material* _NormalMapMat;
+
 	Material* skyBoxMaterial;
 
 	//Descriptions
@@ -152,4 +163,18 @@ private:
 	 float r = 1.0f;
 	 float g = 0.0f;
 	 float b = 0.0f;
+
+
+	 // Shadow map "stuff"
+	 int shadowMapSize;
+	 ID3D11DepthStencilView* shadowDSV;
+	 ID3D11ShaderResourceView* shadowSRV;
+	 ID3D11SamplerState* shadowSampler;
+	 ID3D11RasterizerState* shadowRS;
+	 SimpleVertexShader* shadowVS;
+	 DirectX::XMFLOAT4X4 shadowView;
+	 DirectX::XMFLOAT4X4 shadowProj;
+
+	 bool isBloom = false;
+
 };

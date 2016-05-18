@@ -15,6 +15,10 @@ public:
 	float rotY = 0.0f;
 	float rotX = 0.0f;
 	float rotZ = 0.0f;
+	XMFLOAT3 GetCamePos() {
+		return camPosition;
+		//return camPosition;
+	}
 	XMFLOAT4X4 GetWorldMatrix(){
 		return worldMatrix;
 	}
@@ -33,6 +37,10 @@ public:
 	void SetRotationZ(float z) {
 		rotZ = z;
 	}
+
+	//void GetX() {
+	//	return camPosition.x;
+	//}
 	void Update();
 	void Forward(float disp);
 	void Rotate(float rotation);

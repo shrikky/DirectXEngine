@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Camera.h"
 #include <DirectXMath.h>
 #include "DirectXGameCore.h"
 #include "SimpleShader.h"
@@ -12,6 +13,9 @@ using namespace DirectX;
 class GameObject
 {
 public:
+	int Framecount = 0;
+	Camera* mainCam;
+	bool DistanceBased;
 	XMFLOAT4X4 worldMatrix;
 	XMFLOAT4X4 modelMatrix;
 	XMFLOAT3 position;
@@ -19,6 +23,10 @@ public:
 	XMFLOAT3 scale;
 	Mesh* gameObjectMesh;
 	Material* gameObjectmaterial;
+	Material* gameObjectmaterialClose;
+	Material* gameObjectmaterialMed;
+	Material* gameObjectmaterialFar;
+
 	XMFLOAT4X4 GetWorldMatrix() {
 		return worldMatrix;
 	}
@@ -26,7 +34,7 @@ public:
 		return position;
 	}
 	XMFLOAT3 GetRotation() {
-		return position;
+		return rotation;
 	}
 	XMFLOAT3 GetScale() {
 		return position;
@@ -61,17 +69,30 @@ public:
 		rotation.y = y;
 		SetWorldMatrix();
 	}
+//<<<<<<< HEAD
 	void SetScale(XMFLOAT3 _scale) {
-		 scale = _scale;
-		 SetWorldMatrix();
+		scale = _scale;
+		SetWorldMatrix();
+	}
+//=======
+	//void SetScale(XMFLOAT3 Scale) {
+	//	scale = Scale;
+	//}
+
+	Mesh* getMesh() {
+		return gameObjectMesh;
+
+//>>>>>>> Rose-Branch-from-GUI
 	}
 
+	float distance(XMFLOAT3 pt1, XMFLOAT3 pt2);
 	void Move();
 	void SetWorldMatrix();
 	void MoveForward();
 	void Draw(ID3D11DeviceContext* deviceContext);
 	void PrepareMaterial(XMFLOAT4X4 view, XMFLOAT4X4 proj);
 	GameObject(Mesh* mesh, Material* material);
+	GameObject(Mesh* mesh, Material* materialClose, Material* materialMed, Material* materialFar, Camera* cam);
 	~GameObject();
 private:
 

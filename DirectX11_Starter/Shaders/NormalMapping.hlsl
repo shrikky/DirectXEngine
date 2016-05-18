@@ -1,7 +1,11 @@
 
 Texture2D diffuseTexture	: register(t0);
 Texture2D normalMap			:register(t1);
+Texture2D shadowMap		: register(t2);
 SamplerState trillinear	: register(s0);
+SamplerComparisonState shadowSampler : register(s1);
+Texture2D depthMap			:register(t3);
+
 
 struct VertexToPixel
 {
@@ -10,6 +14,7 @@ struct VertexToPixel
 	float3 tangent		: TANGENT;
 	float3 worldPos     : TEXCOORD0;
 	float2 uv           : TEXCOORD1;
+	float4 posForShadow : TEXCOORD2; // Shadow
 };
 struct DirectionalLight {
 	float4 AmbientColor;		// 4
@@ -47,7 +52,6 @@ float4 CalculateDirectionalLight(float3 normal, DirectionalLight light) {
 float CalculatePointLight(float3 normal, float3 direction, float dist) {
 
 	float point_NdotL;
-	normal = normalize(normal);
 	point_NdotL = saturate(dot(normal, direction));
 	point_NdotL = mul(point_NdotL, pointLight.Strength);
 	return point_NdotL;
@@ -56,43 +60,111 @@ float CalculatePointLight(float3 normal, float3 direction, float dist) {
 ///SpecularLight Calculation
 float SpecLight(float3 normal, float3 camDir, float3 lightTowardsPLight, float strength) {
 	float spec;
-	/*Phong reflection
-	float3 reflection = reflect(-lightTowardsPLight, normal);
-	spec = pow(max(dot(reflection, camDir),0),16);
-	*/
-
+	//Phong reflection
+	//float3 reflection = reflect(-lightTowardsPLight, normal);
+	//spec = pow(max(dot(reflection, camDir),0),32);
+	
 	//Blinn-Phong shading model
-	float3 halfway = normalize(lightTowardsPLight + camDir); //halfway vector
 
-	spec = pow(max(dot(halfway, camDir), 0), 16);
+	float3 halfway = normalize(-lightTowardsPLight + camDir); //halfway vector
+
+	spec = pow(max(dot(halfway, camDir), 0), 256);
 
 	return spec * strength;
 
 }
-float3 CalculateNormalMap(VertexToPixel input) {
-	input.tangent = normalize(input.tangent);
-	float3 normalFromMap = normalMap.Sample(trillinear, input.uv).rgb;
+float2 ParallaxMapping(float2 texCoords, float3 viewDir){
+
+	const float minLayers = 10;
+	const float maxLayers = 20;
+	float numLayers = lerp(maxLayers, minLayers, abs(dot(float3(0.0, 0.0, 1.0), viewDir)));  
+
+	float layerDepth  = 1.0f/numLayers;
+	float currentLayerDepth  = 0;
+
+	float2 p = viewDir.xy  * 0.1f;
+	return texCoords - p;
+	float2 deltaTexCoords  = p/numLayers;
+	float2 currentTexCoords  = texCoords;
+	float currentDepthMapValue  = depthMap.Sample(trillinear, currentTexCoords).r;
+
+	[unroll(100)]while(currentLayerDepth < currentDepthMapValue)
+	{
+		currentTexCoords -= deltaTexCoords;
+		currentDepthMapValue = depthMap.Sample(trillinear, currentTexCoords).r;
+		currentLayerDepth += layerDepth;
+	}
+	// get texture coordinates before collision (reverse operations)
+		float2 prevTexCoords = currentTexCoords + deltaTexCoords;
+
+		// get depth after and before collision for linear interpolation
+		float afterDepth  = currentDepthMapValue - currentLayerDepth;
+		float beforeDepth =  depthMap.Sample(trillinear, prevTexCoords).r - currentLayerDepth + layerDepth;
+ 
+		// interpolation of texture coordinates
+		float weight = afterDepth / (afterDepth - beforeDepth);
+		float2 finalTexCoords = prevTexCoords * weight + currentTexCoords * (1.0 - weight);
+		//return finalTexCoords;   
+}
+
+float3 CalculateNormalMap(inout float3 dirTowardsCamera, float3x3 TBN, inout float2 texCoords, float3 normalFromMap) 
+{	
+
+
+	texCoords =  ParallaxMapping(texCoords,dirTowardsCamera);
+	   // discards a fragment when sampling outside default texture region (fixes border artifacts)
+
+	normalFromMap = normalMap.Sample(trillinear, texCoords).rgb;
 	normalFromMap = normalFromMap * 2 - 1;	// Normal unpacking
 
-	// Calculate the TBN matrix to go from tangent-space to world-space
+	return normalFromMap;
+}
+
+
+float4 main(VertexToPixel input) : SV_TARGET
+{	
+	input.normal = normalize(input.normal);
+	float2 texCoords = input.uv;
 	float3 N = input.normal;
 	float3 T = normalize(input.tangent - N * dot(input.tangent, N));		// This is improvement code, we can also use T = normalize(input.tangent)
 	float3 B = cross(T, N);
 	float3x3 TBN = float3x3(T, B, N);
-	input.normal = normalize(mul(normalFromMap, TBN));
-	return input.normal;
-}
-float4 main(VertexToPixel input) : SV_TARGET
-{
+
+
+	float3 dirTowardsCamera = normalize(cameraPosition - input.worldPos);
+	dirTowardsCamera = mul(dirTowardsCamera,TBN);
 	float3 output;
-	input.normal = normalize(input.normal);
-	input.normal = CalculateNormalMap(input);
+	float3 normalFromMap;
+	normalFromMap = CalculateNormalMap( dirTowardsCamera, TBN, texCoords, normalFromMap);
+	input.normal = normalize(mul(normalFromMap, TBN));
 	float dist = distance(pointLight.Position,input.worldPos);
 	float3 dirTowardsPointLight = normalize(pointLight.Position - input.worldPos);
-	float3 dirTowardsCamera = normalize(cameraPosition - input.worldPos);
-	float3 surfaceColor = diffuseTexture.Sample(trillinear, input.uv).rgb;
+	
+	float3 surfaceColor = diffuseTexture.Sample(trillinear, texCoords).rgb;
+
+//<<<<<<< HEAD
+	// Calculate shadow amount
+
+	// Calculate this pixel's UV coordinate ON THE SHADOW MAP
+	float2 shadowUV = input.posForShadow.xy / input.posForShadow.w * 0.5f + 0.5f;
+
+	// Flip the Y value (since texture coords and clip space are opposite)
+	shadowUV.y = 1 - shadowUV.y;
+
+	// Calculate this pixel's actual depth from the light
+	float depthFromLight = input.posForShadow.z / input.posForShadow.w;
+
+	// Sample the shadow map and (automatically) compare the values
+	float shadowAmount = shadowMap.SampleCmpLevelZero(shadowSampler, shadowUV, depthFromLight);
 
 	output =	pointLight.PointLightColor * CalculatePointLight(input.normal, dirTowardsPointLight, dist)+	// PointLight
 	CalculateDirectionalLight(input.normal, directionLight);										// DirectionalLight
-	return float4(output, 1) * float4(surfaceColor,1) ;//+ float4(SpecLight(input.normal, dirTowardsCamera, dirTowardsPointLight, specularLight.SpecularStrength).xxx, 1);
+
+	return float4(output, 1) *float4(surfaceColor, 1) + float4(SpecLight(input.normal, dirTowardsCamera, dirTowardsPointLight, specularLight.SpecularStrength).xxx, 1) * (shadowAmount);
+//=======
+	//output =	pointLight.PointLightColor * CalculatePointLight(input.normal, dirTowardsPointLight, dist) +
+	// float4(SpecLight(input.normal, dirTowardsCamera, dirTowardsPointLight, specularLight.SpecularStrength).xxx, 0);
+	////+ CalculateDirectionalLight(input.normal, directionLight);
+	//return float4(output, 1) * float4(surfaceColor,1) ;
+//>>>>>>> b3cd44b5ab30675fe4fd3806e9873e5aa3ca47c7
 }
