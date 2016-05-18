@@ -33,6 +33,7 @@ cbuffer externalData : register(b0)
 	DirectionalLight directionLight;
 	PointLight pointLight;
 	SpecularLight specularLight;
+	float3 camPos;
 };
 // Directional Light calculation
 float4 CalculateDirectionalLight(float3 normal, DirectionalLight light, float3 tangentLightPos) {
@@ -89,7 +90,7 @@ float4 main(VertexToPixel input) : SV_TARGET
 	float3 surfaceColor = diffuseTexture.Sample(trillinear, texCoords).rgb;
 	
 	output =
-	pointLight.PointLightColor * CalculatePointLight(input.normal, dirTowardsPointLight, dist)// PointLight
-	+ CalculateDirectionalLight(input.normal, directionLight, input.TangentDLightPos);										// DirectionalLight
-	return float4(output, 1) *float4(surfaceColor,1) ;//+ float4(SpecLight(normalFromMap, dirTowardsCamera, dirTowardsPointLight, specularLight.SpecularStrength).xxx, 1);
-}
+		pointLight.PointLightColor * CalculatePointLight(input.normal, dirTowardsPointLight, dist) + float4(SpecLight(input.normal, dirTowardsCamera, dirTowardsPointLight, specularLight.SpecularStrength).xxx, 1);
+	// PointLight
+	//+ CalculateDirectionalLight(input.normal, directionLight, input.TangentDLightPos);										// DirectionalLight
+	return float4(output, 1) *float4(surfaceColor, 1); }

@@ -186,16 +186,16 @@ bool MyDemoGame::Init()
 	srvContainer.push_back(helixTexSRV);
 
 
-	GameObject* cube = new GameObject(_cube, _cubeMaterial);
+	GameObject* cube = new GameObject(_cube, _cubeMaterial2);
 	gameObjects.push_back(cube);
 	GameObject* cube2 = new GameObject(_cube2, _cubeMaterial2);
 	gameObjects.push_back(cube2);
 
-	for (int i = 0; i < 100;  i++)
-	{
-		gameObjects.push_back(new GameObject(_cube, _cubeMaterial));
-		gameObjects[i]->SetPosition(XMFLOAT3(2*(i/100), (i%100/10) * 2, i%10*2));
-	}
+	//for (int i = 0; i < 100;  i++)
+	//{
+	//	gameObjects.push_back(new GameObject(_cube, _cubeMaterial));
+	//	gameObjects[i]->SetPosition(XMFLOAT3(2*(i/100), (i%100/10) * 2, i%10*2));
+	//}
 	//blending object
 	helixGameObject = new GameObject(_helix, _helixMaterial);
 
@@ -227,8 +227,8 @@ bool MyDemoGame::Init()
 	parallaxVS->SetFloat3("lightPos", pointLight.Position);
 
 	// Specular Light
-	specularLight.SpecularStrength = 1.0f;
-	specularLight.SpecularColor = XMFLOAT4(0, 0, 0.5, 1);
+	specularLight.SpecularStrength = 0.2f;
+	specularLight.SpecularColor = XMFLOAT4(0.1f, 0, 0, 1);
 	//pixelShader->SetData("specularLight", &specularLight, sizeof(specularLight));
 	normalMappingPS->SetData("specularLight", &specularLight, sizeof(specularLight));
 	parallaxPS->SetData("specularLight", &specularLight, sizeof(specularLight));
@@ -481,11 +481,11 @@ void MyDemoGame::UpdateScene(float deltaTime, float totalTime)
 		myCamera->Strafe(-10.0f*deltaTime);
 	}
 	
-	std::vector<GameObject*>::iterator it;
-	for (it = gameObjects.begin(); it != gameObjects.end(); ++it)
-	{
-		(*it)->SetRotation(XMFLOAT3(totalTime, totalTime, totalTime));
-	}
+	//std::vector<GameObject*>::iterator it;
+	//for (it = gameObjects.begin(); it != gameObjects.end(); ++it)
+	//{
+	//	(*it)->SetRotation(XMFLOAT3(totalTime, totalTime, totalTime));
+	//}
 
 	myCamera->Update();
 	viewMatrix = myCamera->GetviewMatrix();
@@ -579,7 +579,7 @@ void MyDemoGame::DrawScene(float deltaTime, float totalTime)
 	// Set up post processing shaders
 	ppVS->SetShader(true);
 
-	ppPS->SetInt("blurAmount", 20);
+	ppPS->SetInt("blurAmount", 6);
 	ppPS->SetFloat("pixelWidth", 1.0f / windowWidth);
 	ppPS->SetFloat("pixelHeight", 1.0f / windowHeight);
 	ppPS->SetShaderResourceView("pixels", brtSRV);
